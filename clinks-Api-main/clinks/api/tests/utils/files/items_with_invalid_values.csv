@@ -1,0 +1,15 @@
+Title,Description (can be empty),Image url (.jpg or .png only),Category,Subcategory
+,,https://digitalcontent.api.tesco.com/v2/media/ghs/f8c1946c-73aa-4dbf-bd47-cec0a56ddd85/snapshotimagehandler_153970376.jpeg?h=540&w=540,Beer,Lager
+         ,,https://img.tesco.ie/Groceries/pi/601/8712000038601/IDShot_225x225.jpg,Beer,Lager
+row 4,,,Beer,lager
+row 5,,      ,beer,Lager
+row 6,,https://www.google.com/,Beer,Lager
+row 7 ,,https://www.google.com/logos/doodles/2022/winter-games-2022-begin-feb-4-6753651837109353.5-law.gif,Beer,Lager
+row 8,,https://www.google.com/logos/doodles/2022/winter-games-2022-begin-feb-4-6753651837109353.5-law.gif,,Lager
+row 9,,https://digitalcontent.api.tesco.com/v2/media/ghs/f8c1946c-73aa-4dbf-bd47-cec0a56ddd85/snapshotimagehandler_153970376.jpeg?h=540&w=540,    ,Lager
+row 10,,https://digitalcontent.api.tesco.com/v2/media/ghs/f8c1946c-73aa-4dbf-bd47-cec0a56ddd85/snapshotimagehandler_153970376.jpeg?h=540&w=540,Beer,
+row 11,,https://digitalcontent.api.tesco.com/v2/media/ghs/f8c1946c-73aa-4dbf-bd47-cec0a56ddd85/snapshotimagehandler_153970376.jpeg?h=540&w=540.jpg,Beer,
+   ,     ,     ,     ,
+   row1,,https://digitalcontent.api.tesco.com/v2/media/ghs/f8c1946c-73aa-4dbf-bd47-cec0a56ddd85/snapshotimagehandler_153970376.jpeg?h=540&w=540,Beer1,Lager
+ row2,,https://digitalcontent.api.tesco.com/v2/media/ghs/f8c1946c-73aa-4dbf-bd47-cec0a56ddd85/snapshotimagehandler_153970376.jpeg?h=540&w=540,Beer,Lager1,
+  row 4,,https://digitalcontent.api.tesco.com/v2/media/ghs/f8c1946c-73aa-4dbf-bd47-cec0a56ddd85/snapshotimagehandler_153970376.jpeg?h=540&w=540,Beer,Lager

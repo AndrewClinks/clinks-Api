@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+{% load filters %}
+<!-- Created by pdf2htmlEX (https://github.com/coolwanglu/pdf2htmlex) -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="generator" content="pdf2htmlEX"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
+    <style>
+        .receipt {
+            max-width: 400px;
+            display: block;
+            margin: 20px auto;
+            border: 1px solid #000;
+        }
+        .receipt-inner {
+            padding: 20px
+        }
+        .logo {
+            margin: 20px auto;
+            display: block;
+        }
+        .row {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .col-6 {
+            -webkit-box-flex: 0;
+            -ms-flex: 0 0 50%;
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+        .col-3 {
+            -webkit-box-flex: 0;
+            -ms-flex: 0 0 25%;
+            flex: 0 0 25%;
+            max-width: 25%;
+        }
+        h4 {
+            text-align: center;
+            font-size: 25px;
+            margin: 0px;
+            font-family: 'Open Sans', sans-serif;
+        }
+        hr {
+            vertical-align: middle;
+            margin-top: 15px;
+        }
+        .order-info {
+            margin-top: 10px;
+            border-bottom: 3px solid #000;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 12px;
+        }
+
+        .order-food,
+        .allergy-info,
+        .driver-instructions {
+            margin-top: 10px;
+            border-bottom: 3px solid #000;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 13px;
+        }
+        .summary {
+            margin-top: 10px;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 13px;
+        }
+        .extra-option {
+            opacity: .7
+        }
+        table {
+            width: 100%;
+        }
+        .total {
+            padding-top: 20px;
+            font-weight: 700
+        }
+    </style>
+    <title></title>
+</head>
+
+<body>
+
+<div class="receipt">
+    <div class="receipt-inner">
+        <img class="logo" src={{clinks_logo}}
+             style="height:80px"/>
+        <div class="row">
+            <div class="col-3">
+                <hr>
+            </div>
+            <div class="col-6">
+                <h4>ORDER</h4>
+            </div>
+            <div class="col-3">
+                <hr>
+            </div>
+        </div>
+        <div class="order-info">
+            <table>
+                <tbody>
+                <tr>
+                    <td>Store: {{ order.venue.title }}</td>
+                    <td align="right">{{ order.created_at|convert_to_local_time }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="extra-option">Customer: {{ customer_full_name }}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="order-food">
+            <table>
+                <thead>
+                <tr>
+                    <th align="left">ITEM / QTY</th>
+                    <th align="right">PRICE <span class="vat">(inc VAT)</span></th>
+                </thead>
+                <tbody>
+                {% for current in order.data.items %}
+                    <tr>
+                        <td> {{ current.item.title }} x {{ current.quantity }}</td>
+                        <td align="right">{{current.price|get_price:current.price_sale|get_currency_representation:currency}}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="summary">
+            <table>
+                <tbody>
+                <tr>
+                    <td>Total items:</td>
+                    <td align="right">{{total_item_count}}</td>
+                </tr>
+                <tr style="height: 30px">
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr class="total">
+                    <td>Total:</td>
+                    <td align="right">{{payment.total|get_currency_representation:currency }}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

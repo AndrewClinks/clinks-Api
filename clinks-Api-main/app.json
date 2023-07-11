@@ -1,0 +1,33 @@
+{
+  "environments": {
+    "test": {
+      "env": {  "POSTGRESQL_VERSION": "11"  },
+      "addons": ["heroku-postgresql:in-dyno"],
+      "scripts": {
+        "test": "cd clinks && python manage.py test api.tests --noinput --keepdb -v 2"
+      },
+      "formation": {
+        "test": {
+          "quantity": 4,
+          "size": "standard-1x"
+        }
+      },
+      "buildpacks": [
+        {"url": "https://github.com/heroku/heroku-geo-buildpack.git"},
+        {"url": "heroku/python"},
+        {"url": "https://github.com/riskmethods/heroku-buildpack-ci-postgis"}
+      ]
+    }
+  },
+  "addons": [
+    "heroku-postgresql:in-dyno"
+  ],
+  "buildpacks": [
+    {
+      "url": "https://github.com/heroku/heroku-geo-buildpack.git"
+    },
+    {
+      "url": "heroku/python"
+    }
+  ]
+}

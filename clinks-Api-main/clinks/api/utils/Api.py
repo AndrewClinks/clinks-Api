@@ -1,0 +1,38 @@
+import os
+
+SENDGRID_API_ID = os.environ["SENDGRID_API_ID"]
+SENDGRID_API_KEY = os.environ["SENDGRID_API_KEY"]
+
+EMAIL_FROM = "www.clinks.ie@gmail.com"
+
+AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
+AWS_S3_BUCKET_NAME = os.environ["AWS_S3_BUCKET_NAME"]
+AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
+AWS_CLOUD_FRONT_DOMAIN = os.environ["AWS_CLOUD_FRONT_DOMAIN"]
+
+DEBUG = os.environ['GENERAL_DEBUG'] == "True"
+
+STRIPE_SECRET_KEY = os.environ['STRIPE_SECRET_KEY']
+STRIPE_PUBLIC_KEY = os.environ['STRIPE_PUBLIC_KEY']
+STRIPE_CLIENT_ID = os.environ["STRIPE_CLIENT_ID"]
+
+STRIPE_CONNECT_OAUTH_BASE_URL = "https://connect.stripe.com/oauth/authorize?response_type=code"
+STRIPE_CONNECT_TOKEN_URL = "https://connect.stripe.com/oauth/token"
+
+NO_ANSWER_DISTANCE_TO_CUSTOMER_IN_KMS = int(os.environ["NO_ANSWER_DISTANCE_TO_CUSTOMER_IN_KMS"])
+
+LOWER_MAX_DRIVER_DISTANCE_TO_VENUE_IN_KMS = int(os.environ["LOWER_MAX_DRIVER_DISTANCE_TO_VENUE_IN_KMS"])
+UPPER_MAX_DRIVER_DISTANCE_TO_VENUE_IN_KMS = int(os.environ["UPPER_MAX_DRIVER_DISTANCE_TO_VENUE_IN_KMS"])
+
+
+RETURN_EMAILS = os.environ["RETURN_EMAILS"]
+
+
+
+
+
+
+
+
+
+
