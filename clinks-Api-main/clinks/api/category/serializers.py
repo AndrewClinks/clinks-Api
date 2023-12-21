@@ -46,9 +46,6 @@ class CategoryListSerializer(ListModelSerializer):
         model = Category
         fields = ["id", "title", "image", "parent", "menu_item_count", "item_count"]
 
-    def get_select_related_fields(self):
-        return ["image", ]
-
 
 class CategoryAdminListSerializer(CategoryListSerializer):
     subcategories = serializers.SerializerMethodField()
