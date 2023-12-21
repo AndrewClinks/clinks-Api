@@ -19,7 +19,7 @@ defusedxml==0.7.1
 dj-database-url==0.5.0
 Django==3.2.3
 django-cors-headers==3.11.0
--e git+https://github.com/bertonha/django-push-notifications.git@7cb6936e93b3a67332ff72422273b02e8dc37691#egg=django_push_notifications
+django-push-notifications==3.0.2
 djangorestframework==3.12.4
 djangorestframework-simplejwt==4.6.0
 fonttools==4.33.2
