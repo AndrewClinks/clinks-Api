@@ -18,7 +18,7 @@ class MenuDetailSerializer(ListModelSerializer):
         fields = ["menu_categories"]
 
     def get_menu_categories(self, instance):
-        menu_categories = MenuCategory.objects.filter(menu=instance).order_by("order").prefetch_related(
-            Prefetch("items", queryset=MenuItem.objects.select_related("item__image", "item__subcategory"))
+        menu_categories = instance.categories.all().order_by("order").prefetch_related(
+            "items__item__image", "items__item__subcategory"
         )
         return MenuCategoryDetailSerializer(menu_categories, many=True).data
