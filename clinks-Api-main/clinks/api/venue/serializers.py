@@ -1,3 +1,4 @@
+from ..company.serializers import CompanyTitleSerializer
 from ..utils.Serializers import serializers, CreateModelSerializer, EditModelSerializer, ListModelSerializer
 
 from ..address.serializers import Address, AddressCreateSerializer, AddressEditSerializer, AddressDetailSerializer
@@ -161,20 +162,16 @@ class VenueOrderDriverDetailSerializer(ListModelSerializer):
 
 
 class VenueOrderAdminDetailSerializer(VenueOrderDetailSerializer):
-    company = serializers.SerializerMethodField()
+    company = CompanyTitleSerializer(read_only=True)
     contact_email = serializers.SerializerMethodField()
 
     class Meta(VenueOrderDetailSerializer.Meta):
-        fields = VenueOrderDetailSerializer.Meta.fields + ["company", "contact_email",]
-
-    def get_company(self, instance):
-        from ..company.serializers import CompanyTitleSerializer
-        company = instance.company
-        return CompanyTitleSerializer(company).data
+        fields = VenueOrderDetailSerializer.Meta.fields + ["company", "contact_email"]
 
     def get_contact_email(self, instance):
         company_member = instance.company.members.first()
-        return company_member.user.email
+        return company_member.user.email if company_member else None
+
 
 
 def save_opening_hours(venue, opening_hours_data):

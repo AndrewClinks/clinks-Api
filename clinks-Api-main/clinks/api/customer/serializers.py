@@ -97,14 +97,11 @@ class CustomerDetailSerializer(CustomerListSerializer):
 
 
 class CustomerOrderDetailSerializer(ListModelSerializer):
-    user = UserDetailSerializer()
+    user = UserDetailSerializer(read_only=True)
 
     class Meta:
         model = Customer
-        fields = ["user", ]
-
-    def get_select_related_fields(self):
-        return ["user", ]
+        fields = ["user"]
 
 
 def identification_validation(serializer, attrs, instance=None):

@@ -369,10 +369,10 @@ class OrderDriverEditSerializer(EditModelSerializer):
 
 
 class OrderAdminListSerializer(ListModelSerializer):
-    venue = VenueOrderAdminDetailSerializer()
-    payment = PaymentOrderDetailSerializer()
-    customer = CustomerOrderDetailSerializer()
-    driver = DriverOrderDetailSerializer()
+    venue = VenueOrderAdminDetailSerializer(read_only=True)
+    payment = PaymentOrderDetailSerializer(read_only=True)
+    customer = CustomerOrderDetailSerializer(read_only=True)
+    driver = DriverOrderDetailSerializer(read_only=True)
 
     class Meta:
         model = Order
@@ -380,7 +380,7 @@ class OrderAdminListSerializer(ListModelSerializer):
                   "identification_status", "identification"]
 
     def get_select_related_fields(self):
-        return ["venue", "payment", "customer"]
+        return ["venue", "payment", "customer", "driver"]
 
 
 class OrderCompanyMemberListSerializer(ListModelSerializer):
