@@ -120,6 +120,9 @@ class MenuItemListSerializer(MenuItemMenuListSerializer):
         venue = instance.menu_category.menu.venue
         return VenueCustomerListSerializer(venue).data
 
+class MenuItemListSerializerV2(MenuItemMenuListSerializer):
+    pass
+
 
 class MenuItemCustomerListSerializer(MenuItemListSerializer):
 
