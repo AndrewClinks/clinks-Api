@@ -220,6 +220,7 @@ atexit.register(unlink_file)
 
 PUSH_NOTIFICATIONS_SETTINGS = {
     "FCM_API_KEY": os.environ['FCM_API_KEY'],
+    "FCM_POST_URL": "https://fcm.googleapis.com/v1/projects/clinks-1f1c7/messages:send",
     "APNS_AUTH_KEY_PATH": apns_file_name,
     "APNS_AUTH_KEY_ID": os.environ["APNS_AUTH_KEY_ID"],
     "APNS_TEAM_ID": os.environ["APPLE_TEAM_ID"],
