@@ -60,7 +60,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'api.middleware.LastSeen',
-    'api.middleware.Logging'
+    'api.middleware.Logging',
+    'api.utils.logging_middleware.LogPushNotificationRequestsMiddleware',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -230,3 +231,27 @@ PUSH_NOTIFICATIONS_SETTINGS = {
 }
 
 TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+        },
+        '__main__': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
+}
