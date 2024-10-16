@@ -14,6 +14,9 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 import os, datetime, atexit, sys
 
+# GDAL_LIBRARY_PATH = '/opt/homebrew/Cellar/gdal/3.9.3_1/lib/libgdal.dylib'
+# GEOS_LIBRARY_PATH = '/opt/homebrew/Cellar/geos/3.13.0/lib/libgeos_c.dylib'
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -235,23 +238,35 @@ TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+            'filters': ['require_debug_false'],  # Only log when DEBUG is False
         },
     },
     'root': {
         'handlers': ['console'],
-        'level': 'INFO',
+        'level': 'WARNING',  # Set to WARNING to reduce verbosity
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'WARNING'),  # Use WARNING or ERROR
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',  # Only log errors in requests
+            'propagate': False,
         },
         '__main__': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'ERROR',  # Log only errors
         },
     },
 }
