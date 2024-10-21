@@ -45,7 +45,7 @@ urlpatterns = [
 
     path("orders", include("api.order.urls")),
 
-    path("testorder", include("api.test_url.urls")),
+    path("testorder", include("api.test_order.urls")),
 
     path("all-time-stats", include("api.all_time_stat.urls")),
 
