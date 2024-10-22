@@ -6,6 +6,7 @@ from ..utils.Views import SmartAPIView
 from ..utils.Permissions import IsAdminPermission
 from ..venue.models import Venue
 from ..menu_item.models import MenuItem
+from ..address.serializers import AddressCreateSerializer
 
 class CreateTestOrder(SmartAPIView):
     permission_classes = [IsAdminPermission]
@@ -27,12 +28,25 @@ class CreateTestOrder(SmartAPIView):
             for item in menu_items
         ]
 
+        # Define the latitude and longitude for the address
+        address_data = {
+            "latitude": 51.896791,  # Example latitude (Cork coordinates)
+            "longitude": -8.470114  # Example longitude (Cork coordinates)
+        }
+
+        # Create the address
+        address_serializer = AddressCreateSerializer(data=address_data)
+        if address_serializer.is_valid():
+            address = address_serializer.save()
+        else:
+            return Response(address_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         # Set test data for required fields
         data = {
             "customer": 7,  # Andrew Scannell
             "venue": venue.id,
             "items": items,  # The items pulled from the database for the venue
-            "address": "2 Frankfield View, St Lukes Cross, Cork, T23 A9N6",
+            "address": address.id,
             "menu": venue.id,
             "payment": {
                 "card": "4242424242424242",
