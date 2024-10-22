@@ -246,12 +246,12 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'WARNING',
+        'level': 'DEBUG',
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'WARNING'),
+            'level': 'DEBUG',
             'propagate': True,  # Allow propagation of 'django.request' logs
         },
         '__main__': {
