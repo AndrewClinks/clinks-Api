@@ -27,6 +27,9 @@ from .models import Payment
 from .models import Currency 
 from ..card.models import Card
 
+import logging
+logger = logging.getLogger(__name__)
+
 class OrderCreateSerializer(CreateModelSerializer):
     address = serializers.PrimaryKeyRelatedField(queryset=Address.objects.all())
     menu = serializers.PrimaryKeyRelatedField(queryset=Menu.objects.all())
@@ -161,6 +164,8 @@ class OrderCreateSerializer(CreateModelSerializer):
     def create(self, validated_data):
         validated_data["data"] = self.get_data(validated_data)
         validated_data["driver_verification_number"] = secrets.randbelow(100)
+
+        logger.info("Order", "Order created", validated_data)
 
         order = Order.objects.create(**validated_data)
 
