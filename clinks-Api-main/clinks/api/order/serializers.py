@@ -24,6 +24,7 @@ import secrets
 from ..utils import Availability, List, Distance, DateUtils, Constants, Api
 from .models import Order
 from .models import Payment
+from .models import Currency
 
 
 class OrderCreateSerializer(CreateModelSerializer):
@@ -129,9 +130,13 @@ class OrderCreateSerializer(CreateModelSerializer):
         payment_data["company"] = venue.company.id
 
         if is_test_order:
+            # Fetch a mock currency instance, assuming '1' is the ID of the currency you want to use
+            mock_currency = Currency.objects.get(id=1)
+
             # If it's a test order, mock the payment data
             payment_data["stripe_charge_id"] = "mock_stripe_charge_id"  # Mock charge ID
             payment_data["paid_at"] = DateUtils.now()  # Mock payment timestamp
+            payment_data["currency"] = mock_currency 
 
             # Create a mock Payment object
             payment = Payment.objects.create(**payment_data)
