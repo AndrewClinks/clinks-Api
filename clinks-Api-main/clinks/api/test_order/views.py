@@ -31,7 +31,12 @@ class CreateTestOrder(SmartAPIView):
         # Define the latitude and longitude for the address
         address_data = {
             "latitude": 51.896791,  # Example latitude (Cork coordinates)
-            "longitude": -8.470114  # Example longitude (Cork coordinates)
+            "longitude": -8.470114,  # Example longitude (Cork coordinates)
+            "line_1": "12 South Mall",  # Example line_1
+            "city": "Cork", 
+            "state": "Munster", 
+            "country": "Ireland",
+            "country_short": "IE"
         }
 
         # Create the address
