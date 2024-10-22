@@ -7,10 +7,16 @@ from ..utils.Permissions import IsAdminPermission
 from ..venue.models import Venue
 from ..menu_item.models import MenuItem
 from ..address.serializers import AddressCreateSerializer
+from django.http import JsonResponse
 
 class CreateTestOrder(SmartAPIView):
     permission_classes = [IsAdminPermission]
     create_serializer = OrderCreateSerializer
+
+    def options(self, request, *args, **kwargs):
+        # Handle the preflight request separately
+        response = JsonResponse({'message': 'Options request'}, status=200)
+        return response
 
     def get(self, request, venue_id, *args, **kwargs):
         venue_id = 1
@@ -28,6 +34,24 @@ class CreateTestOrder(SmartAPIView):
             for item in menu_items
         ]
 
+        # # Define the latitude and longitude for the address
+        # address_data = {
+        #     "latitude": 51.896791,  # Example latitude (Cork coordinates)
+        #     "longitude": -8.470114,  # Example longitude (Cork coordinates)
+        #     "line_1": "12 South Mall",  # Example line_1
+        #     "city": "Cork", 
+        #     "state": "Munster", 
+        #     "country": "Ireland",
+        #     "country_short": "IE"
+        # }
+
+        # # Create the address
+        # address_serializer = AddressCreateSerializer(data=address_data)
+        # if address_serializer.is_valid():
+        #     address = address_serializer.save()
+        # else:
+        #     return Response(address_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         # Some of this is alsy being set in the order serializer
         # It needs this initial data to get through initial validators
         # Set test data for required fields
@@ -35,7 +59,7 @@ class CreateTestOrder(SmartAPIView):
             "customer": 7,  # Andrew Scannell
             "venue": venue.id,
             "items": items,  # The items pulled from the database for the venue
-            "address": 3, # 12 S Mall
+            "address": 3, # 12 South Mall, Cork
             "menu": venue.id,
             "payment": {
                 "card": "1", # this is needed here and then again inside the serializer... I know... it's a bit weird
