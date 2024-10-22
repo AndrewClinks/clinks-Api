@@ -142,7 +142,8 @@ class OrderCreateSerializer(CreateModelSerializer):
             payment_data["card"] = mock_card 
             payment_data["currency"] = mock_currency 
             payment_data["company"] = venue.company 
-
+            payment_data.pop('expected_price', None)  # Remove the expected price from the payment data
+            
             # Create a mock Payment object
             payment = Payment.objects.create(**payment_data)
         else:
