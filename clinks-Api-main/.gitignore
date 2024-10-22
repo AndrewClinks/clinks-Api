@@ -56,3 +56,6 @@ env/*
 ve/*
 venv/*
 */__pycache__/*
+
+.env
+clinks-1f1c7-1a35693e131a.json

@@ -123,6 +123,7 @@ class OrderCreateSerializer(CreateModelSerializer):
             service_fee = 200
 
         payment_data = attrs["payment"]
+
         payment_data["delivery_fee"] = delivery_distance.fee
         payment_data["delivery_driver_fee"] = delivery_distance.driver_fee
         payment_data["service_fee"] = service_fee

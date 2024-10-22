@@ -53,7 +53,7 @@ class CreateTestOrder(SmartAPIView):
             "customer": 7,  # Andrew Scannell
             "venue": venue.id,
             "items": items,  # The items pulled from the database for the venue
-            "address": address.id,
+            "address": address,
             "menu": venue.id,
             "payment": {
                 "card": "1", # this is needed here and then again inside the serializer... I know... it's a bit weird
