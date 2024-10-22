@@ -30,11 +30,10 @@ class OrderCreateSerializer(CreateModelSerializer):
     menu = serializers.PrimaryKeyRelatedField(queryset=Menu.objects.all())
     items = OrderItemValidateSerializer(many=True, allow_null=False, allow_empty=False)
     payment = PaymentValidateSerializer()
-    is_test_order = serializers.BooleanField(default=False, required=False)
 
     class Meta:
         model = Order
-        fields = ["customer", "venue", "address", "menu", "payment", "items", "is_test_order"]
+        fields = ["customer", "venue", "address", "menu", "payment", "items"]
 
     def validate(self, attrs):
         customer = attrs["customer"]
@@ -42,7 +41,7 @@ class OrderCreateSerializer(CreateModelSerializer):
         venue = attrs["venue"]
         menu = attrs["menu"]
         items = attrs["items"]
-        is_test_order = attrs.get("is_test_order", False) 
+        is_test_order = self.context.get('is_test_order', False)
 
         if not is_test_order:
             status = Availability.status()
