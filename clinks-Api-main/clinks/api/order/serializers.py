@@ -25,7 +25,7 @@ from ..utils import Availability, List, Distance, DateUtils, Constants, Api
 from .models import Order
 from .models import Payment
 from .models import Currency
-
+from .models import Card
 
 class OrderCreateSerializer(CreateModelSerializer):
     address = serializers.PrimaryKeyRelatedField(queryset=Address.objects.all())
@@ -120,7 +120,6 @@ class OrderCreateSerializer(CreateModelSerializer):
             service_fee = 200
 
         payment_data = attrs["payment"]
-
         payment_data["delivery_fee"] = delivery_distance.fee
         payment_data["delivery_driver_fee"] = delivery_distance.driver_fee
         payment_data["service_fee"] = service_fee
@@ -129,13 +128,18 @@ class OrderCreateSerializer(CreateModelSerializer):
         payment_data["customer"] = customer
         payment_data["company"] = venue.company.id
 
+        ## !!!!! TEST ORDER PAYMENT !!!!!
         if is_test_order:
+            # Fetch a mock card instance, assuming '16' is the ID of the card you want to use
+            mock_card = Card.objects.get(id=16)
+
             # Fetch a mock currency instance, assuming '1' is the ID of the currency you want to use
             mock_currency = Currency.objects.get(id=1)
 
             # If it's a test order, mock the payment data
             payment_data["stripe_charge_id"] = "mock_stripe_charge_id"  # Mock charge ID
             payment_data["paid_at"] = DateUtils.now()  # Mock payment timestamp
+            payment_data["card"] = mock_card 
             payment_data["currency"] = mock_currency 
 
             # Create a mock Payment object

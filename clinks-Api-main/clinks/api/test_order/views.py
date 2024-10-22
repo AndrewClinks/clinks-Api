@@ -46,6 +46,8 @@ class CreateTestOrder(SmartAPIView):
         else:
             return Response(address_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        # Some of this is alsy being set in the order serializer
+        # It needs this initial data to get through initial validators
         # Set test data for required fields
         data = {
             "customer": 7,  # Andrew Scannell
