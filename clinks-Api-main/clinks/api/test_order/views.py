@@ -18,17 +18,26 @@ class CreateTestOrder(SmartAPIView):
 
         # Prepare the items (based on your example data from the query)
         items = [
-            {"menu_item_id": item.id, "quantity": 1, "price": item.price}
+            {
+                "id": item.id,
+                "menu_item_id": item.id, 
+                "quantity": 1, 
+                "price": item.price
+            }
             for item in menu_items
         ]
 
         # Set test data for required fields
         data = {
-            "customer": request.user.id,  # Assuming the current user is the customer
+            "customer": 7,  # Andrew Scannell
             "venue": venue.id,
             "items": items,  # The items pulled from the database for the venue
+            "address": "2 Frankfield View, St Lukes Cross, Cork, T23 A9N6",
+            "menu": venue.id,
             "payment": {
+                "card": "4242424242424242",
                 "method": "card",
+                "expected_price": sum(item['price'] for item in items),
                 "amount": sum(item['price'] for item in items),  # Calculate total amount from items
                 "currency": "EUR",
                 "status": "PENDING"
