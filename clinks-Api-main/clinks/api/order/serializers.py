@@ -23,6 +23,7 @@ import secrets
 
 from ..utils import Availability, List, Distance, DateUtils, Constants, Api
 from .models import Order
+from .models import Payment
 
 
 class OrderCreateSerializer(CreateModelSerializer):
@@ -82,10 +83,7 @@ class OrderCreateSerializer(CreateModelSerializer):
         if subtotal < Setting.get_minimum_order_amount():
             self.raise_validation_error("Order", "Minimum order value has not reached")
 
-        # Proceed to handle payment if it's not a test order
-        if not is_test_order:
-            self.pay(attrs, subtotal)
-
+        self.pay(attrs, subtotal)
         return attrs
 
     def calculate_subtotal(self, items):
@@ -124,11 +122,23 @@ class OrderCreateSerializer(CreateModelSerializer):
         payment_data["customer"] = customer
         payment_data["company"] = venue.company.id
 
-        serializer = PaymentCreateSerializer(data=payment_data)
-        serializer.is_valid(raise_exception=True)
-        payment = serializer.create(serializer.validated_data)
-        attrs["payment"] = payment
+        # Check if it's a test order
+        is_test_order = self.context.get('is_test_order', False)
 
+        if is_test_order:
+            # If it's a test order, mock the payment data
+            payment_data["stripe_charge_id"] = "mock_stripe_charge_id"  # Mock charge ID
+            payment_data["paid_at"] = DateUtils.now()  # Mock payment timestamp
+
+            # Create a mock Payment object
+            payment = Payment.objects.create(**payment_data)
+        else:
+            # This is where it goes off to stripe so be careful with this
+            serializer = PaymentCreateSerializer(data=payment_data)
+            serializer.is_valid(raise_exception=True)
+            payment = serializer.create(serializer.validated_data)
+        
+        attrs["payment"] = payment
         return payment
 
     def create(self, validated_data):
