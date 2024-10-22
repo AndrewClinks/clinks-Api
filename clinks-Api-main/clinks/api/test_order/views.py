@@ -56,7 +56,6 @@ class CreateTestOrder(SmartAPIView):
             "address": address.id,
             "menu": venue.id,
             "payment": {
-                "card": "16", # an old card that belongs to Andy
                 "method": "card",
                 "expected_price": sum(item['price'] for item in items),
                 "amount": sum(item['price'] for item in items),  # Calculate total amount from items
