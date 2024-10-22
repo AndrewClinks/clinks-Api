@@ -64,11 +64,11 @@ class OrderCreateSerializer(CreateModelSerializer):
             if customer.address != address:
                 self.raise_validation_error("Order", "This address does not belong to you")
 
+            if not venue.can_deliver_to(customer.address):
+                self.raise_validation_error("Order", "Venue does not deliver to your location")
+
         if menu.venue != venue:
             self.raise_validation_error("Order", "This menu does not belong to this venue")
-
-        if not venue.can_deliver_to(customer.address):
-            self.raise_validation_error("Order", "Venue does not deliver to your location")
 
         unique_item_ids = List.get_unique_item_ids(items)
 
