@@ -141,6 +141,7 @@ class OrderCreateSerializer(CreateModelSerializer):
             payment_data["paid_at"] = DateUtils.now()  # Mock payment timestamp
             payment_data["card"] = mock_card 
             payment_data["currency"] = mock_currency 
+            payment_data["company"] = venue.company 
 
             # Create a mock Payment object
             payment = Payment.objects.create(**payment_data)
