@@ -30,10 +30,11 @@ class OrderCreateSerializer(CreateModelSerializer):
     menu = serializers.PrimaryKeyRelatedField(queryset=Menu.objects.all())
     items = OrderItemValidateSerializer(many=True, allow_null=False, allow_empty=False)
     payment = PaymentValidateSerializer()
+    is_test_order = serializers.BooleanField(default=False, required=False)
 
     class Meta:
         model = Order
-        fields = ["customer", "venue", "address", "menu", "payment", "items"]
+        fields = ["customer", "venue", "address", "menu", "payment", "items", "is_test_order"]
 
     def validate(self, attrs):
         customer = attrs["customer"]
@@ -41,23 +42,25 @@ class OrderCreateSerializer(CreateModelSerializer):
         venue = attrs["venue"]
         menu = attrs["menu"]
         items = attrs["items"]
+        is_test_order = attrs.get("is_test_order", False) 
 
-        status = Availability.status()
+        if not is_test_order:
+            status = Availability.status()
 
-        if venue.company.status != Constants.COMPANY_STATUS_ACTIVE:
-            self.raise_validation_error("Order", "Sorry, this company isn't active!")
+            if venue.company.status != Constants.COMPANY_STATUS_ACTIVE:
+                self.raise_validation_error("Order", "Sorry, this company isn't active!")
 
-        if venue.paused:
-            self.raise_validation_error("Order", "Sorry, this venue isn't active!")
+            if venue.paused:
+                self.raise_validation_error("Order", "Sorry, this venue isn't active!")
 
-        if status["available"] is False:
-            self.raise_validation_error("Order", status["reason"])
+            if status["available"] is False:
+                self.raise_validation_error("Order", status["reason"])
 
-        if not venue.open():
-            self.raise_validation_error("Order", "Venue is closed")
+            if not venue.open():
+                self.raise_validation_error("Order", "Venue is closed")
 
-        if not venue.company.can_accept_payments():
-            self.raise_validation_error("Order", "This company cannot accept payments yet!")
+            if not venue.company.can_accept_payments():
+                self.raise_validation_error("Order", "This company cannot accept payments yet!")
 
         if menu.venue != venue:
             self.raise_validation_error("Order", "This menu does not belong to this venue")
@@ -80,7 +83,9 @@ class OrderCreateSerializer(CreateModelSerializer):
         if subtotal < Setting.get_minimum_order_amount():
             self.raise_validation_error("Order", "Minimum order value has not reached")
 
-        self.pay(attrs, subtotal)
+        # Proceed to handle payment if it's not a test order
+        if not is_test_order:
+            self.pay(attrs, subtotal)
 
         return attrs
 

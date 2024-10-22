@@ -238,35 +238,30 @@ TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse',
-        },
-    },
     'handlers': {
         'console': {
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'filters': ['require_debug_false'],  # Only log when DEBUG is False
         },
     },
     'root': {
         'handlers': ['console'],
-        'level': 'WARNING',  # Set to WARNING to reduce verbosity
+        'level': 'WARNING',
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'WARNING'),  # Use WARNING or ERROR
-            'propagate': False,
-        },
-        'django.request': {
-            'handlers': ['console'],
-            'level': 'ERROR',  # Only log errors in requests
-            'propagate': False,
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'WARNING'),
+            'propagate': True,  # Allow propagation of 'django.request' logs
         },
         '__main__': {
             'handlers': ['console'],
-            'level': 'ERROR',  # Log only errors
+            'level': 'ERROR',
+        },
+        'clinks-api-live': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
         },
     },
 }

@@ -71,7 +71,7 @@ class CreateTestOrder(SmartAPIView):
         # data.update(request.data)
 
         # Validate and save the new order
-        serializer = self.create_serializer(data=data)
+        serializer = self.create_serializer(data=data, is_test_order=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
