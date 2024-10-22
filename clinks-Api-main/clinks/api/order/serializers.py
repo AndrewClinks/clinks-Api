@@ -180,6 +180,7 @@ class OrderCreateSerializer(CreateModelSerializer):
         from ..address.serializers import AddressDetailSerializer
         from ..card.serializers import CardDetailSerializer
 
+        logger.info("Order", "Getting data for order", validated_data)
         address = validated_data.pop("address")
         card = validated_data["payment"].card
         venue = validated_data["venue"]
@@ -232,20 +233,19 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
                 self.raise_validation_error("Order", "Order status has to be failed")
 
         now = DateUtils.now()
-        match status:
-            case Constants.ORDER_STATUS_LOOKING_FOR_DRIVER:
-                attrs["started_looking_for_drivers_at"] = now
-            case Constants.ORDER_STATUS_REJECTED:
-                attrs["rejected_at"] = now
-                attrs["rejection_reason"] = Constants.ORDER_REJECTION_REASON_REJECTED_BY_VENUE
-                self.instance.payment.refund()
+        if status == Constants.ORDER_STATUS_LOOKING_FOR_DRIVER:
+            attrs["started_looking_for_drivers_at"] = now
+        elif status == Constants.ORDER_STATUS_REJECTED:
+            attrs["rejected_at"] = now
+            attrs["rejection_reason"] = Constants.ORDER_REJECTION_REASON_REJECTED_BY_VENUE
+            self.instance.payment.refund()
 
-        match delivery_status:
-            case Constants.DELIVERY_STATUS_OUT_FOR_DELIVERY:
-                attrs["collected_at"] = now
-            case Constants.DELIVERY_STATUS_RETURNED:
-                attrs["returned_at"] = now
-                self.instance.payment.returned(self.instance)
+        if status == Constants.ORDER_STATUS_LOOKING_FOR_DRIVER:
+            attrs["started_looking_for_drivers_at"] = now
+        elif status == Constants.ORDER_STATUS_REJECTED:
+            attrs["rejected_at"] = now
+            attrs["rejection_reason"] = Constants.ORDER_REJECTION_REASON_REJECTED_BY_VENUE
+            self.instance.payment.refund()
 
         return attrs
 
@@ -371,11 +371,12 @@ class OrderDriverEditSerializer(EditModelSerializer):
             attrs.pop("no_answer_image", None)
 
         now = DateUtils.now()
-        match delivery_status:
-            case Constants.DELIVERY_STATUS_DELIVERED:
-                attrs["delivered_at"] = now
-            case Constants.DELIVERY_STATUS_FAILED:
-                attrs["failed_at"] = now
+        if delivery_status == Constants.ORDER_STATUS_LOOKING_FOR_DRIVER:
+            attrs["started_looking_for_drivers_at"] = now
+        elif delivery_status == Constants.ORDER_STATUS_REJECTED:
+            attrs["rejected_at"] = now
+            attrs["rejection_reason"] = Constants.ORDER_REJECTION_REASON_REJECTED_BY_VENUE
+            self.instance.payment.refund()
         return attrs
 
     def update(self, instance, validated_data):
