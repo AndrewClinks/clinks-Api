@@ -79,10 +79,6 @@ class Company(SmartModel):
         super(Company, self).save()
 
     def can_accept_payments(self):
-        logger.info(f"self: {self}")
-        logger.info(f"stripe_account_id: {self.stripe_account_id}, stripe_charges_enabled: {self.stripe_charges_enabled}")
-        logger.info("Skipping Stripe validation for test order")
-        
         # For regular orders, validate Stripe account and charges enabled
         return self.stripe_account_id is not None and self.stripe_charges_enabled
 

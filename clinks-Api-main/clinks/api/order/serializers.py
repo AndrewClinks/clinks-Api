@@ -166,7 +166,7 @@ class OrderCreateSerializer(CreateModelSerializer):
         validated_data["data"] = self.get_data(validated_data)
         validated_data["driver_verification_number"] = secrets.randbelow(100)
 
-        logger.info("Order", "Order created", validated_data)
+        logger.info("create validated_data: %s", validated_data)
 
         if not self.context.get('is_test_order', False):
             order = Order.objects.create(**validated_data)
@@ -183,7 +183,7 @@ class OrderCreateSerializer(CreateModelSerializer):
         from ..address.serializers import AddressDetailSerializer
         from ..card.serializers import CardDetailSerializer
 
-        logger.info("Order", "Getting data for order", validated_data)
+        logger.info("get_data validated_data: %s", validated_data)
         address = validated_data.pop("address")
         card = validated_data["payment"].card
         venue = validated_data["venue"]
