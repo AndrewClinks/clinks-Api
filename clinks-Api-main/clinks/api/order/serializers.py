@@ -24,8 +24,8 @@ import secrets
 from ..utils import Availability, List, Distance, DateUtils, Constants, Api
 from .models import Order
 from .models import Payment
-from .models import Currency
-from .models import Card
+from .models import Currency 
+from ..card.models import Card
 
 class OrderCreateSerializer(CreateModelSerializer):
     address = serializers.PrimaryKeyRelatedField(queryset=Address.objects.all())
