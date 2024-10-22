@@ -105,7 +105,7 @@ class OrderCreateSerializer(CreateModelSerializer):
         is_test_order = self.context.get('is_test_order', False)
 
         if is_test_order:
-            delivery_distance = 0
+            delivery_distance = DeliveryDistance.get_by_distance(0)
         else:
             delivery_distance = DeliveryDistance.get_by_distance(Distance.between(venue.address.point, customer.address.point, True))
 
