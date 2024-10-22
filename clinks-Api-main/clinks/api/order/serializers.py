@@ -165,10 +165,13 @@ class OrderCreateSerializer(CreateModelSerializer):
     def create(self, validated_data):
         validated_data["data"] = self.get_data(validated_data)
         validated_data["driver_verification_number"] = secrets.randbelow(100)
-
+        
         logger.info("Order", "Order created", validated_data)
 
-        order = Order.objects.create(**validated_data)
+        if not self.context.get('is_test_order', False):
+            order = Order.objects.create(**validated_data)
+        else:
+            return
 
         update_stats_for_order.delay_on_commit(order.id)
 
