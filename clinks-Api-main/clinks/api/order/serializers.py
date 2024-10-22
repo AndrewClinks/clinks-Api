@@ -60,12 +60,12 @@ class OrderCreateSerializer(CreateModelSerializer):
 
             if not venue.company.can_accept_payments():
                 self.raise_validation_error("Order", "This company cannot accept payments yet!")
+            
+            if customer.address != address:
+                self.raise_validation_error("Order", "This address does not belong to you")
 
         if menu.venue != venue:
             self.raise_validation_error("Order", "This menu does not belong to this venue")
-
-        if customer.address != address:
-            self.raise_validation_error("Order", "This address does not belong to you")
 
         if not venue.can_deliver_to(customer.address):
             self.raise_validation_error("Order", "Venue does not deliver to your location")
