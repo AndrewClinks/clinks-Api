@@ -56,6 +56,7 @@ class CreateTestOrder(SmartAPIView):
             "address": address.id,
             "menu": venue.id,
             "payment": {
+                "card": "1", # this is needed here and then again inside the serializer... I know... it's a bit weird
                 "method": "card",
                 "expected_price": sum(item['price'] for item in items),
                 "amount": sum(item['price'] for item in items),  # Calculate total amount from items
