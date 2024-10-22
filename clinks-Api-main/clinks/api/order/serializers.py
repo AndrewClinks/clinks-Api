@@ -101,7 +101,13 @@ class OrderCreateSerializer(CreateModelSerializer):
         customer = attrs["customer"]
         menu = attrs.pop("menu")
 
-        delivery_distance = DeliveryDistance.get_by_distance(Distance.between(venue.address.point, customer.address.point, True))
+        # Check if it's a test order
+        is_test_order = self.context.get('is_test_order', False)
+
+        if is_test_order:
+            delivery_distance = 0
+        else:
+            delivery_distance = DeliveryDistance.get_by_distance(Distance.between(venue.address.point, customer.address.point, True))
 
         service_fee_percentage = venue.service_fee_percentage
         service_fee = int(round(subtotal * service_fee_percentage))
@@ -121,9 +127,6 @@ class OrderCreateSerializer(CreateModelSerializer):
         payment_data["currency"] = venue.currency.id
         payment_data["customer"] = customer
         payment_data["company"] = venue.company.id
-
-        # Check if it's a test order
-        is_test_order = self.context.get('is_test_order', False)
 
         if is_test_order:
             # If it's a test order, mock the payment data
