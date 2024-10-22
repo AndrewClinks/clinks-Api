@@ -131,7 +131,7 @@ class OrderCreateSerializer(CreateModelSerializer):
         ## !!!!! TEST ORDER PAYMENT !!!!!
         if is_test_order:
             # Fetch a mock card instance, assuming '16' is the ID of the card you want to use
-            mock_card = Card.objects.get(id=16)
+            mock_card = Card.objects.get(id=1)
 
             # Fetch a mock currency instance, assuming '1' is the ID of the currency you want to use
             mock_currency = Currency.objects.get(id=1)
