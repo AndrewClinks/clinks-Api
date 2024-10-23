@@ -22,9 +22,9 @@ from ..tasks import update_stats_for_order, create_delivery_requests, send_notif
 import secrets
 
 from ..utils import Availability, List, Distance, DateUtils, Constants, Api
-from .models import Order
-from .models import Payment
-from .models import Currency 
+from ..order.models import Order
+from ..payment.models import Payment
+from ..currency.models import Currency 
 from ..card.models import Card
 
 import logging
@@ -168,10 +168,7 @@ class OrderCreateSerializer(CreateModelSerializer):
 
         logger.info("create validated_data: %s", validated_data)
 
-        if not self.context.get('is_test_order', False):
-            order = Order.objects.create(**validated_data)
-        else:
-            return 
+        order = Order.objects.create(**validated_data)
 
         update_stats_for_order.delay_on_commit(order.id)
 
@@ -183,7 +180,6 @@ class OrderCreateSerializer(CreateModelSerializer):
         from ..address.serializers import AddressDetailSerializer
         from ..card.serializers import CardDetailSerializer
 
-        logger.info("get_data validated_data: %s", validated_data)
         address = validated_data.pop("address")
         card = validated_data["payment"].card
         venue = validated_data["venue"]
