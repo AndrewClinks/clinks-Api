@@ -239,12 +239,11 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
             attrs["rejection_reason"] = Constants.ORDER_REJECTION_REASON_REJECTED_BY_VENUE
             self.instance.payment.refund()
 
-        if status == Constants.ORDER_STATUS_LOOKING_FOR_DRIVER:
-            attrs["started_looking_for_drivers_at"] = now
-        elif status == Constants.ORDER_STATUS_REJECTED:
-            attrs["rejected_at"] = now
-            attrs["rejection_reason"] = Constants.ORDER_REJECTION_REASON_REJECTED_BY_VENUE
-            self.instance.payment.refund()
+        if delivery_status == Constants.DELIVERY_STATUS_OUT_FOR_DELIVERY:
+                attrs["collected_at"] = now
+        elif delivery_status == Constants.DELIVERY_STATUS_RETURNED:
+                attrs["returned_at"] = now
+                self.instance.payment.returned(self.instance)
 
         return attrs
 

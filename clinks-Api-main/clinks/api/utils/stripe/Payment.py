@@ -3,6 +3,8 @@ import stripe, json
 from ...utils import Api, Exception as CustomException, DateUtils
 
 stripe.api_key = Api.STRIPE_SECRET_KEY
+import logging
+logger = logging.getLogger('clinks-api-live')
 
 
 def create_payment_intent(amount, currency, description, payment_method_id, account_id=None, on_platform=False,
@@ -125,6 +127,10 @@ def get_payment_data(payment_intent, account_id=None, on_platform=False):
 
 
 def refund(payment):
+    if payment.stripe_charge_id == "mock_stripe_charge_id":
+        logger.info("Test order, skipping refund.")
+        return payment
+    
     stripe_account_id = payment.company.stripe_account_id
 
     stripe_refund = stripe.Refund.create(
