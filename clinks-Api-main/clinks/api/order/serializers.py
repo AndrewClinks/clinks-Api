@@ -48,6 +48,9 @@ class OrderCreateSerializer(CreateModelSerializer):
         items = attrs["items"]
         is_test_order = self.context.get('is_test_order', False)
 
+        # Log the address object to check if it is being retrieved properly
+        logger.info("OrderCreateSerializer address retrieved: %s", address)
+
         if not is_test_order:
             status = Availability.status()
 
