@@ -6,8 +6,9 @@ from ..utils.Views import SmartAPIView
 from ..utils.Permissions import IsAdminPermission
 from ..venue.models import Venue
 from ..menu_item.models import MenuItem
-from ..address.serializers import AddressCreateSerializer
 from django.http import JsonResponse
+import logging
+logger = logging.getLogger('clinks-api-live')
 
 class CreateTestOrder(SmartAPIView):
     permission_classes = [IsAdminPermission]
@@ -74,6 +75,7 @@ class CreateTestOrder(SmartAPIView):
         # Validate and save the new order
         serializer = self.create_serializer(data=data, context={'is_test_order': True})
         if serializer.is_valid():
+            logger.info(f"Creating test order for venue {venue_id}")
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
