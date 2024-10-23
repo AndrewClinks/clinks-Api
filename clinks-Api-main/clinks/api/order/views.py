@@ -107,7 +107,7 @@ class Detail(SmartDetailAPIView):
     detail_serializer = OrderCompanyMemberDetailSerializer
 
     def has_permission(self, request, method):
-        if method == "PATCH" and not (self.is_company_member_request() or self.is_driver_request()):
+        if method == "PATCH" and not (self.is_company_member_request() or self.is_driver_request() or self.is_admin_request()):
             return False
         return True
 
