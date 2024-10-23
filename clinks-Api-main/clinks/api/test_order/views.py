@@ -69,13 +69,15 @@ class CreateTestOrder(SmartAPIView):
             "order_date": timezone.now(),
         }
 
-        # Allow incoming request to override test data if provided
-        # data.update(request.data)
+        logger.info(f"TEST ORDER Data prepared for test order: {data}")
 
         # Validate and save the new order
         serializer = self.create_serializer(data=data, context={'is_test_order': True})
         if serializer.is_valid():
-            logger.info(f"Creating test order for venue {venue_id}")
+            logger.info(f"TEST ORDER Validation successful for venue {venue_id}. Saving order.")
             serializer.save()
+            logger.info(f"TEST ORDER created successfully.")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            logger.error(f"TEST ORDER Validation failed with errors: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
