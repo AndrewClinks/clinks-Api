@@ -11,29 +11,29 @@ import logging
 logger = logging.getLogger('clinks-api-live')
 
 class CreateTestOrder(SmartAPIView):
-    permission_classes = [IsAdminPermission]
-    create_serializer = OrderCreateSerializer
+    # permission_classes = [IsAdminPermission]
+    # create_serializer = OrderCreateSerializer
 
-    def options(self, request, *args, **kwargs):
-        # Handle the preflight request separately
-        response = JsonResponse({'message': 'Options request'}, status=200)
-        return response
+    # def options(self, request, *args, **kwargs):
+    #     # Handle the preflight request separately
+    #     response = JsonResponse({'message': 'Options request'}, status=200)
+    #     return response
 
     def get(self, request, venue_id, *args, **kwargs):
-        venue_id = 1
-        venue = Venue.objects.get(id=venue_id)
-        menu_items = MenuItem.objects.filter(menu_id=venue_id) 
+    #     venue_id = 1
+    #     venue = Venue.objects.get(id=venue_id)
+    #     menu_items = MenuItem.objects.filter(menu_id=venue_id) 
 
-        # Prepare the items (based on your example data from the query)
-        items = [
-            {
-                "id": item.id,
-                "menu_item_id": item.id, 
-                "quantity": 1, 
-                "price": item.price
-            }
-            for item in menu_items
-        ]
+    #     # Prepare the items (based on your example data from the query)
+    #     items = [
+    #         {
+    #             "id": item.id,
+    #             "menu_item_id": item.id, 
+    #             "quantity": 1, 
+    #             "price": item.price
+    #         }
+    #         for item in menu_items
+    #     ]
 
         # # Create the address
         # address_data = {
@@ -70,6 +70,8 @@ class CreateTestOrder(SmartAPIView):
         }
 
         logger.info(f"TEST ORDER Data prepared for test order: {data}")
+
+        return Response(data, status=status.HTTP_200_OK)
 
         # Validate and save the new order
         serializer = self.create_serializer(data=data, context={'is_test_order': True})
