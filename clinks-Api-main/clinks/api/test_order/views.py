@@ -74,7 +74,9 @@ class CreateTestOrder(SmartAPIView):
         data = []
 
         if os.environ.get('RUN_MAIN') == 'true':
-            logger.info(f"TEST ORDER Data prepared for test order: {data}")
+            logger.info(f"TEST ORDER in main process: {data}")
+        else:
+            logger.info(f"TEST ORDER not in main process: {data}")
 
         return Response(data, status=status.HTTP_200_OK)
 
