@@ -248,20 +248,9 @@ LOGGING = {
         'handlers': ['console'],
         'level': 'DEBUG',
     },
-    'loggers': {
+    'loggers': {  # Remove individual loggers, rely on root logger instead
         'django': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,  # Allow propagation of 'django.request' logs
-        },
-        '__main__': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-        },
-        'clinks-api-live': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
+            'level': 'DEBUG',  # If needed, this will be handled by the root logger
         },
     },
 }
