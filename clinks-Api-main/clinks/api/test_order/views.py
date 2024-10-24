@@ -8,6 +8,7 @@ from ..venue.models import Venue
 from ..menu_item.models import MenuItem
 from django.http import JsonResponse
 import logging
+import os
 logger = logging.getLogger('clinks-api-live')
 
 class CreateTestOrder(SmartAPIView):
@@ -72,7 +73,8 @@ class CreateTestOrder(SmartAPIView):
 
         data = []
 
-        logger.info(f"TEST ORDER Data prepared for test order: {data}")
+        if os.environ.get('RUN_MAIN') == 'true':
+            logger.info(f"TEST ORDER Data prepared for test order: {data}")
 
         return Response(data, status=status.HTTP_200_OK)
 
