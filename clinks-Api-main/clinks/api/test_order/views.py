@@ -14,10 +14,11 @@ class CreateTestOrder(SmartAPIView):
     # permission_classes = [IsAdminPermission]
     # create_serializer = OrderCreateSerializer
 
-    # def options(self, request, *args, **kwargs):
-    #     # Handle the preflight request separately
-    #     response = JsonResponse({'message': 'Options request'}, status=200)
-    #     return response
+    def options(self, request, *args, **kwargs):
+        # Handle the preflight request separately
+        response = JsonResponse({'message': 'Options request'}, status=200)
+        logger.info(f"TEST ORDER options request")
+        return response
 
     def get(self, request, venue_id, *args, **kwargs):
         # venue_id = 1
