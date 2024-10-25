@@ -54,8 +54,8 @@ class OrderCreateSerializer(CreateModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)  # Call the superclass initializer
-        #logger.info("OrderCreateSerializer instantiated with context: %s", self.context)
-        #logger.info("OrderCreateSerializer initial data: %s", self.initial_data)
+        logger.info("OrderCreateSerializer instantiated with context: %s", self.context)
+        logger.info("OrderCreateSerializer initial data: %s", self.initial_data)
 
     class Meta:
         model = Order

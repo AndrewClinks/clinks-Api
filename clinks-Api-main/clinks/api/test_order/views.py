@@ -90,6 +90,7 @@ class CreateTestOrder(SmartAPIView):
                 "previous": None  # No previous page
             }
             # Mimic paginated response if only one object is returned
+            logger.info(f"Final response_data: {response_data}")
             return Response(response_data)
         else:
             logger.error(f"TEST ORDER Validation failed with errors: {serializer.errors}")
