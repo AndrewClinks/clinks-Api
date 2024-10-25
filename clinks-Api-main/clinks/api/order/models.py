@@ -106,11 +106,11 @@ class Order(SmartModel):
     
     @property
     def menu(self):
-        """Retrieve the venue's menu."""
+        """Retrieve the menu for this order's venue."""
         try:
-            return self.venue.menu  # Access the menu directly from venue
+            return Menu.objects.get(venue_id=self.venue.id)
         except Menu.DoesNotExist:
-            logger.warning(f"Menu does not exist for Venue ID: {self.venue.id}")
+            # Return None or handle the case if a menu is not found
             return None
 
 
