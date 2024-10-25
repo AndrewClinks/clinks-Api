@@ -1,4 +1,3 @@
-from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework import status
 from ..order.serializers import OrderCreateSerializer
@@ -6,9 +5,9 @@ from ..utils.Views import SmartAPIView
 from ..utils.Permissions import IsAdminPermission
 from ..venue.models import Venue
 from ..menu_item.models import MenuItem
-from django.http import JsonResponse
+from ..order.serializers import OrderCustomerDetailSerializer
+
 import logging
-import os
 logger = logging.getLogger('clinks-api-live')
 
 class CreateTestOrder(SmartAPIView):
@@ -81,10 +80,14 @@ class CreateTestOrder(SmartAPIView):
         # Validate and save the new order
         serializer = self.create_serializer(data=data, context={'is_test_order': True})
         if serializer.is_valid():
-            serializer.save()
+            order = serializer.save()
             logger.info(f"TEST ORDER created successfully.")
+
+            # Use the same serializer as in ListCreate
+            detail_serializer = OrderCustomerDetailSerializer(order)  # Adjust if needed for other user types
+
             response_data = {
-                "results": serializer.data,
+                "results": detail_serializer.data,
                 "total_count": 1,
                 "next": None,  # No next page
                 "previous": None  # No previous page
