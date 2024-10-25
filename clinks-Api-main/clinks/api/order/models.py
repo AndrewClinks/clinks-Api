@@ -98,6 +98,15 @@ class Order(SmartModel):
         except AttributeError:
             # Optionally log an error or return a default value if no address is found
             return None
+    
+    @property
+    def menu(self):
+        """Retrieve the venue's menu."""
+        try:
+            return self.venue.company.menu  # Assuming `address` is a property or field on `Customer`
+        except AttributeError:
+            # Optionally log an error or return a default value if no address is found
+            return None
 
 
 
