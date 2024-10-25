@@ -9,11 +9,15 @@ from ..currency.models import Currency
 from ..driver.models import Driver
 from ..venue.models import Venue
 from ..image.models import Image
+from ..menu.models import Menu
 from ..daily_stat.models import DailyStat
 from django.contrib.gis.db.models import PointField
 
 from ..utils.Fields import EnumField
 from ..utils.Models import SmartModel
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Order(SmartModel):
@@ -92,6 +96,7 @@ class Order(SmartModel):
 
     @property
     def address(self):
+        logger.info(f"ORDER MODEL: {self.customer.address}")
         """Retrieve the customer's address."""
         try:
             return self.customer.address  # Assuming `address` is a property or field on `Customer`
@@ -103,7 +108,7 @@ class Order(SmartModel):
     def menu(self):
         """Retrieve the venue's menu."""
         try:
-            return self.venue.company.menu  # Assuming `address` is a property or field on `Customer`
+            return  self.venue.menu # Assuming `address` is a property or field on `Customer`
         except AttributeError:
             # Optionally log an error or return a default value if no address is found
             return None
