@@ -3,6 +3,7 @@ from ..utils.Serializers import serializers, ValidateModelSerializer, CreateMode
 from ..address.models import Address
 from ..address.serializers import AddressDetailSerializer
 from ..menu.models import Menu
+from ..menu.serializers import MenuDetailSerializer
 from ..menu_item.models import MenuItem
 from ..venue.serializers import VenueOrderDetailSerializer, VenueOrderAdminDetailSerializer, VenueOrderDriverDetailSerializer
 from ..venue.models import Venue
@@ -46,11 +47,11 @@ class OrderCreateSerializer(CreateModelSerializer):
             # Log to confirm where the access issue arises
             logger.error(f"Error accessing address: {e}")
             return None
-        if hasattr(obj.customer, 'address'):
-            return AddressDetailSerializer(obj.customer.address).data
-        else:
-            logger.warning("Address not found for customer.")
-            return {}
+    
+    def get_menu(self, obj):
+        """Retrieve menu data from the Order instance."""
+        menu = obj.menu  # Accesses the `menu` property on the Order model
+        return MenuDetailSerializer(menu).data if menu else None  # Serialise if exists
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)  # Call the superclass initializer
