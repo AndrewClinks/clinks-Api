@@ -38,9 +38,7 @@ class OrderCreateSerializer(CreateModelSerializer):
     items = OrderItemValidateSerializer(many=True, allow_null=False, allow_empty=False)
     payment = PaymentValidateSerializer()
 
-    customer_address = serializers.SerializerMethodField()
-
-    def get_customer_address(self, obj):
+    def get_address(self, obj):
         logger.info(f"OrderCreateSerializer get_customer_address called {obj}")
         try:
             return AddressDetailSerializer(obj.customer.address).data  # Adjust based on your structure
@@ -48,6 +46,11 @@ class OrderCreateSerializer(CreateModelSerializer):
             # Log to confirm where the access issue arises
             logger.error(f"Error accessing address: {e}")
             return None
+        if hasattr(obj.customer, 'address'):
+            return AddressDetailSerializer(obj.customer.address).data
+        else:
+            logger.warning("Address not found for customer.")
+            return {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)  # Call the superclass initializer
