@@ -131,6 +131,7 @@ class OrderCreateSerializer(CreateModelSerializer):
     def pay(self, attrs, subtotal):
         venue = attrs["venue"]
         customer = attrs["customer"]
+        menu = attrs.pop("menu") # This needs to be popped because it's not a field on the Order model
 
         # Check if it's a test order
         is_test_order = self.context.get('is_test_order', False)
