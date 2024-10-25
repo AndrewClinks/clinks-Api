@@ -65,6 +65,7 @@ class CreateTestOrder(SmartAPIView):
         # }
         data = {
             "venue": venue.id,  # Venue ID from your setup
+            "menu": venue.id,  # Menu ID from your setup
             "payment": {
                 "card": "1",  # Mock card ID
                 "expected_price": sum(item['price'] for item in items),  # Expected total price from items
