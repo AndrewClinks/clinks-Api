@@ -108,9 +108,9 @@ class Order(SmartModel):
     def menu(self):
         """Retrieve the venue's menu."""
         try:
-            return  self.venue.menu # Assuming `address` is a property or field on `Customer`
-        except AttributeError:
-            # Optionally log an error or return a default value if no address is found
+            return self.venue.menu  # Access the menu directly from venue
+        except Menu.DoesNotExist:
+            logger.warning(f"Menu does not exist for Venue ID: {self.venue.id}")
             return None
 
 
