@@ -73,10 +73,10 @@ class CreateTestOrder(SmartAPIView):
             },
             "items": items,  # The items pulled from the database for the venue
             "instructions": "Test order instructions",  # Example instructions
+            "address": 3
         }
 
-        data["customer"] = 7 # Andrew Scannell (this is added by the backend from the auth request)
-        
+        data["customer"] = 7 # Andrew Scannell (this is added by the backend from the auth request of the user)
 
         # Validate and save the new order
         serializer = self.create_serializer(data=data, context={'is_test_order': True})
