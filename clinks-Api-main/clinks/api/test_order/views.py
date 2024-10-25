@@ -44,32 +44,39 @@ class CreateTestOrder(SmartAPIView):
         # Some of this is alsy being set in the order serializer
         # It needs this initial data to get through initial validators
         # Set test data for required fields
+        # data = {
+        #     "customer": 7,  # Andrew Scannell
+        #     "venue": 1,
+        #     "items": items,  # The items pulled from the database for the venue
+        #     "address": 3, # 12 South Mall, Cork
+        #     "menu": venue.id,
+        #     "payment": {
+        #         "card": "1", # this is needed here and then again inside the serializer... I know... it's a bit weird
+        #         "method": "card",
+        #         "expected_price": sum(item['price'] for item in items),
+        #         "amount": sum(item['price'] for item in items),  # Calculate total amount from items
+        #         "currency": "EUR",
+        #         "status": "PENDING"
+        #     },
+        #     "status": 'PENDING',
+        #     "delivery_status": 'AWAITING',
+        #     "total_price": sum(item['price'] for item in items),  # Set total price
+        #     "order_date": timezone.now(),
+        # }
         data = {
-            "customer": 7,  # Andrew Scannell
-            "venue": 1,
-            "items": items,  # The items pulled from the database for the venue
-            "address": 3, # 12 South Mall, Cork
-            "menu": venue.id,
+            "venue": venue.id,  # Venue ID from your setup
+            "menu": venue.id,  # Using the venue ID for the menu as in the frontend data
             "payment": {
-                "card": "1", # this is needed here and then again inside the serializer... I know... it's a bit weird
-                "method": "card",
-                "expected_price": sum(item['price'] for item in items),
-                "amount": sum(item['price'] for item in items),  # Calculate total amount from items
-                "currency": "EUR",
-                "status": "PENDING"
+                "card": "1",  # Mock card ID
+                "expected_price": sum(item['price'] for item in items),  # Expected total price from items
+                "tip": 0,  # Assuming no tip for the test, adjust if needed
             },
-            "status": 'PENDING',
-            "delivery_status": 'AWAITING',
-            "total_price": sum(item['price'] for item in items),  # Set total price
-            "order_date": timezone.now(),
+            "items": items,  # The items pulled from the database for the venue
         }
-
-        logger.info(f"TEST ORDER starting for: {data}")
 
         # Validate and save the new order
         serializer = self.create_serializer(data=data, context={'is_test_order': True})
         if serializer.is_valid():
-            logger.info(f"TEST ORDER Validation successful for venue {venue_id}. Saving order.")
             serializer.save()
             logger.info(f"TEST ORDER created successfully.")
             return Response(serializer.data, status=status.HTTP_201_CREATED)

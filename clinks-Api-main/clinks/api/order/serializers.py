@@ -54,7 +54,10 @@ class OrderCreateSerializer(CreateModelSerializer):
         is_test_order = self.context.get('is_test_order', False)
 
         # Log the address object to check if it is being retrieved properly
-        logger.info("OrderCreateSerializer address retrieved: %s", address)
+        logger.info(
+            "OrderCreateSerializer address retrieved: id=%s, line_1=%s, city=%s, state=%s, country=%s, point=%s",
+            address.id, address.line_1, address.city, address.state, address.country, address.point
+        )
 
         if not is_test_order:
             status = Availability.status()
@@ -171,35 +174,75 @@ class OrderCreateSerializer(CreateModelSerializer):
         return payment
 
     def create(self, validated_data):
+        logger.info("Starting order creation process")
+
+        # Add detailed logging for validated data
+        logger.debug("Initial validated_data: %s", validated_data)
+
+        # Process data
         validated_data["data"] = self.get_data(validated_data)
+        logger.debug("Data after get_data: %s", validated_data["data"])
+
         validated_data["driver_verification_number"] = secrets.randbelow(100)
+        logger.debug("Driver verification number: %s", validated_data["driver_verification_number"])
 
-        logger.info("create validated_data: %s", validated_data)
+        # Log the final validated data before creating the order
+        logger.info("Final validated_data before creating order: %s", validated_data)
 
+        # Create the order
         order = Order.objects.create(**validated_data)
+        logger.info("Order created with ID: %s", order.id)
+        logger.debug("Order instance fields: %s", vars(order))
 
+        # Queue tasks and log their queuing
         update_stats_for_order.delay_on_commit(order.id)
+        logger.info("Queued update_stats_for_order task for order ID: %s", order.id)
 
         generate_receipt_for_order.delay_on_commit(order.id)
+        logger.info("Queued generate_receipt_for_order task for order ID: %s", order.id)
 
         return order
 
     def get_data(self, validated_data):
-        from ..address.serializers import AddressDetailSerializer
-        from ..card.serializers import CardDetailSerializer
+        logger.info("Starting get_data method")
 
+        # Log the initial validated data
+        logger.debug("Initial validated_data: %s", validated_data)
+
+        # Extract and log individual components
         address = validated_data.pop("address")
+        logger.debug("Extracted address: %s", address)
+
         card = validated_data["payment"].card
+        logger.debug("Extracted card: %s", card)
+
         venue = validated_data["venue"]
+        logger.debug("Extracted venue: %s", venue)
+
         items = validated_data.pop("items")
+        logger.debug("Extracted items: %s", items)
 
         data = dict()
 
+        # Serialize and log each component
         data["customer_address"] = AddressDetailSerializer(address).data
+        logger.debug("Serialized customer_address: %s", data["customer_address"])
+
         data["card"] = CardDetailSerializer(card).data
+        logger.debug("Serialized card: %s", data["card"])
+
         data["venue_address"] = AddressDetailSerializer(venue.address).data
+        logger.debug("Serialized venue_address: %s", data["venue_address"])
+
         data["items"] = OrderItemDetailSerializer(items, many=True).data
+        logger.debug("Serialized items: %s", data["items"])
+
         data["distance"] = Distance.between(venue.address.point, address.point)
+        logger.debug("Calculated distance: %s", data["distance"])
+
+        logger.info("Completed get_data method")
+
+        return data
 
         return data
 
@@ -281,6 +324,17 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
             send_notification.delay_on_commit("send_returned_order_to_driver", order.id)
 
         return order
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        address_data = instance.data.get("customer_address", {})
+        representation["address"] = {
+            "line_1": address_data.get("line_1"),
+            "city": address_data.get("city"),
+            "state": address_data.get("state"),
+            "country": address_data.get("country"),
+        }
+        return representation
 
 
 class OrderDriverEditSerializer(EditModelSerializer):
