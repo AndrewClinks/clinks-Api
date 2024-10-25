@@ -36,6 +36,11 @@ class OrderCreateSerializer(CreateModelSerializer):
     items = OrderItemValidateSerializer(many=True, allow_null=False, allow_empty=False)
     payment = PaymentValidateSerializer()
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)  # Call the superclass initializer
+        logger.info("OrderCreateSerializer instantiated with context: %s", self.context)
+        logger.info("OrderCreateSerializer initial data: %s", self.initial_data)
+
     class Meta:
         model = Order
         fields = ["customer", "venue", "address", "menu", "payment", "items"]
