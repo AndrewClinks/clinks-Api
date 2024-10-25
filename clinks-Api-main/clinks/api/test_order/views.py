@@ -83,19 +83,14 @@ class CreateTestOrder(SmartAPIView):
         if serializer.is_valid():
             serializer.save()
             logger.info(f"TEST ORDER created successfully.")
+            response_data = {
+                "results": serializer.data,
+                "total_count": 1,
+                "next": None,  # No next page
+                "previous": None  # No previous page
+            }
             # Mimic paginated response if only one object is returned
-            return self.paginated_response([serializer.instance], OrderCreateSerializer)
+            return Response(response_data)
         else:
             logger.error(f"TEST ORDER Validation failed with errors: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def paginated_response(self, queryset, serializer_class):
-        # Simulate pagination by treating the entire queryset as a single page
-        serializer = serializer_class(queryset, many=True)
-        response_data = {
-            "results": serializer.data,
-            "total_count": queryset.count(),
-            "next": None,  # No next page
-            "previous": None  # No previous page
-        }
-        return Response(response_data)
