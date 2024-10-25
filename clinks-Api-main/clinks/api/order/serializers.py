@@ -1,6 +1,7 @@
 from ..utils.Serializers import serializers, ValidateModelSerializer, CreateModelSerializer, EditModelSerializer, ListModelSerializer
 
 from ..address.models import Address
+from ..address.serializers import AddressDetailSerializer
 from ..menu.models import Menu
 from ..menu_item.models import MenuItem
 from ..venue.serializers import VenueOrderDetailSerializer, VenueOrderAdminDetailSerializer, VenueOrderDriverDetailSerializer
@@ -26,6 +27,7 @@ from ..order.models import Order
 from ..payment.models import Payment
 from ..currency.models import Currency 
 from ..card.models import Card
+from ..card.serializers import CardDetailSerializer
 
 import logging
 logger = logging.getLogger('clinks-api-live')
@@ -241,8 +243,6 @@ class OrderCreateSerializer(CreateModelSerializer):
         logger.debug("Calculated distance: %s", data["distance"])
 
         logger.info("Completed get_data method")
-
-        return data
 
         return data
 
