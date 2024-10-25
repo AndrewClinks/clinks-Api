@@ -67,12 +67,16 @@ class CreateTestOrder(SmartAPIView):
             "venue": venue.id,  # Venue ID from your setup
             "menu": venue.id,  # Using the venue ID for the menu as in the frontend data
             "payment": {
-                "card": "1",  # Mock card ID
+                "card": 1,  # Mock card ID
                 "expected_price": sum(item['price'] for item in items),  # Expected total price from items
                 "tip": 0,  # Assuming no tip for the test, adjust if needed
             },
             "items": items,  # The items pulled from the database for the venue
+            "instructions": "Test order instructions",  # Example instructions
         }
+
+        data["customer"] = 7 # Andrew Scannell (this is added by the backend from the auth request)
+        
 
         # Validate and save the new order
         serializer = self.create_serializer(data=data, context={'is_test_order': True})
