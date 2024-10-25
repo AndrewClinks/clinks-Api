@@ -171,7 +171,7 @@ class OrderCreateSerializer(CreateModelSerializer):
             # If it's a test order, mock the payment data
             payment_data["stripe_charge_id"] = "mock_stripe_charge_id"  # Mock charge ID
             payment_data["paid_at"] = DateUtils.now()  # Mock payment timestamp
-            payment_data["card"] = mock_card 
+            payment_data["card"] = mock_card.id
             payment_data["currency"] = mock_currency 
             payment_data["company"] = venue.company 
             # Calculate the total amount
