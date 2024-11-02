@@ -101,7 +101,7 @@ def _create_delivery_requests(order_id, max_distance):
     order = Order.objects.get(id=order_id)
     
     # Check if the order is already accepted, and if so, do not continue
-    if order.status == Constants.ORDER_STATUS_ACCEPTED:
+    if order.status != Constants.ORDER_STATUS_LOOKING_FOR_DRIVER:
         logger.info(f"Order {order_id} has been accepted. Stopping further delivery requests.")
         return False  # Stop further processing and scheduling if order is accepted by returning early
 
