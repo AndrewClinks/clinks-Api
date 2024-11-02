@@ -96,7 +96,7 @@ def _create_delivery_requests(order_id, max_distance):
     from .order.models import Order
     from .delivery_request.models import DeliveryRequest
 
-    logger.info('Starting _create_delivery_requests for {order_id}')
+    logger.info(f'Starting _create_delivery_requests for {order_id}')
 
     order = Order.objects.get(id=order_id)
     
@@ -108,9 +108,9 @@ def _create_delivery_requests(order_id, max_distance):
     # This is the important logic which is run each time
     delivery_requests = DeliveryRequest.create_for(order, max_distance)
 
-    logger.info('Sending notification to drivers {delivery_requests}')
-    if delivery_requests:
-        send_notification("send_delivery_requests", delivery_requests)
+    logger.info(f'Sending notification to drivers {delivery_requests}')
+    # if delivery_requests:
+    #     send_notification("send_delivery_requests", delivery_requests)
 
 
 @shared_task(
@@ -121,11 +121,11 @@ def _create_delivery_requests(order_id, max_distance):
 def set_delivery_requests_as_missed(order_id):
     from .delivery_request.models import DeliveryRequest
 
-    logger.info(f"Start > update_delivery_requests_as_missedm {order_id}")
+    # logger.info(f"Scheduled task started: update_delivery_requests_as_missedm {order_id}")
 
     DeliveryRequest.objects.filter(order_id=order_id, status=Constants.DELIVERY_REQUEST_STATUS_PENDING).update(status=Constants.DELIVERY_REQUEST_STATUS_MISSED)
 
-    logger.info(f"End > update_delivery_requests_as_missed {order_id}")
+    logger.info(f"Scheduled task: update_delivery_requests_as_missed {order_id}")
 
 
 @periodic_task(

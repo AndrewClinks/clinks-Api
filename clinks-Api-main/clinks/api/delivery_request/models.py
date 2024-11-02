@@ -43,7 +43,7 @@ class DeliveryRequest(SmartModel):
         queryset = Driver.objects.filter(current_delivery_request__isnull=True)
 
         queryset = queryset.exclude(delivery_requests__order=order).distinct()
-        Log.create(f"Available drivers for order {order.id}: {queryset}")
+        # Log.create(f"Available drivers for order {order.id}: {queryset}")
 
         nearby_drivers = Nearby.drivers(queryset, order, max_distance=max_distance).distinct()
         Log.create(f"Nearby drivers for order {order.id}: {nearby_drivers}")
@@ -52,12 +52,19 @@ class DeliveryRequest(SmartModel):
 
         if nearby_drivers:
             for driver in nearby_drivers:
-                delivery_requests.append(DeliveryRequest(
+                # Make sure there are not existing delivery requests already
+                existing_request = DeliveryRequest.objects.filter(
                     driver=driver,
                     order=order,
-                    status=Constants.DELIVERY_REQUEST_STATUS_PENDING,
-                    driver_location=driver.last_known_location
-                ))
+                    status=Constants.DELIVERY_REQUEST_STATUS_PENDING
+                ).exists()
+                if not existing_request:
+                    delivery_requests.append(DeliveryRequest(
+                        driver=driver,
+                        order=order,
+                        status=Constants.DELIVERY_REQUEST_STATUS_PENDING,
+                        driver_location=driver.last_known_location
+                    ))
 
             delivery_requests = DeliveryRequest.objects.bulk_create(delivery_requests)
             logger.info(f"Created delivery requests for order {order.id}: {delivery_requests}")
