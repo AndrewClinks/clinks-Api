@@ -86,10 +86,10 @@ def update_stats_for_order(order_id):
     base=TransactionAwareTask
 )
 def create_delivery_requests(order_id, max_distance=Api.LOWER_MAX_DRIVER_DISTANCE_TO_VENUE_IN_KMS):
-    _create_delivery_requests(order_id, max_distance)
-    # Schedule this task to run every 5 seconds, 5km from vendor
-    # Setting this to every 2 seconds because it should try to get it to the driver as quickly as possible
-    create_delivery_requests.apply_async(args=(order_id, Api.UPPER_MAX_DRIVER_DISTANCE_TO_VENUE_IN_KMS), countdown=2)
+    if not _create_delivery_requests(order_id, max_distance):
+        # Schedule this task to run every 5 seconds, 5km from vendor
+        # Setting this to every 2 seconds because it should try to get it to the driver as quickly as possible
+        create_delivery_requests.apply_async(args=(order_id, Api.UPPER_MAX_DRIVER_DISTANCE_TO_VENUE_IN_KMS), countdown=2)
 
 
 def _create_delivery_requests(order_id, max_distance):
@@ -103,7 +103,7 @@ def _create_delivery_requests(order_id, max_distance):
     # Check if the order is already accepted, and if so, do not continue
     if order.status == Constants.ORDER_STATUS_ACCEPTED:
         logger.info(f"Order {order_id} has been accepted. Stopping further delivery requests.")
-        return  # Stop further processing and scheduling if order is accepted by returning early
+        return False  # Stop further processing and scheduling if order is accepted by returning early
 
     # This is the important logic which is run each time
     delivery_requests = DeliveryRequest.create_for(order, max_distance)
@@ -111,6 +111,8 @@ def _create_delivery_requests(order_id, max_distance):
     logger.info(f'Sending notification to drivers {delivery_requests}')
     if delivery_requests:
         send_notification("send_delivery_requests", delivery_requests)
+    
+    return True
 
 # This is triggered after the driver accepts the delivery request
 @shared_task(
