@@ -34,9 +34,9 @@ class CreateTestOrder(SmartPaginationAPIView):
             return False
         return True
 
-    def post(self, request, venue_id, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         logger("CreateTestOrder called with request: {request}")
-        venue = Venue.objects.get(id=venue_id)
+        venue = request.data.get('venue')
         menu_items = MenuItem.objects.filter(menu_id=venue_id) 
 
         # Prepare the items
