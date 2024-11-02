@@ -85,8 +85,8 @@ class CreateTestOrder(SmartPaginationAPIView):
         # }
         # See mobile app CartManager.createOrder for 
         data = {
-            "venue": venue.id,  # Venue ID from your setup
-            "menu": venue.id,  # Always the same as venue?
+            "venue": venue,  # Venue ID from your setup
+            "menu": venue,  # Always the same as venue?
             "payment": {
                 "card": "1",  # Mock card ID
                 "expected_price": sum(item['price'] for item in items),  # Expected total price from items
