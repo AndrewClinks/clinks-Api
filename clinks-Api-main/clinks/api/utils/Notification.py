@@ -51,9 +51,25 @@ def send_delivery_requests(delivery_requests):
         "type": Constants.NOTIFICATION_TYPE_ORDER_DELIVERY_REQUESTS
     }
 
+    # Collect all devices
+    all_android_devices = []
+    all_ios_devices = []
+
+    driver_ids = [delivery_request.driver.user_id for delivery_request in delivery_requests]
+    logger.info(f"Sending notifications to drivers: {driver_ids}")
+
     for delivery_request in delivery_requests:
         devices = get_devices(delivery_request.driver.user_id)
-        send_bulk(title, title, data, android_devices=devices["android"], ios_devices=devices["ios"])
+        # Add to combined lists
+        all_android_devices.extend(devices["android"])
+        all_ios_devices.extend(devices["ios"])
+    
+    # Log device IDs before sending notifications
+    logger.info(f"Android devices: {[device.id for device in all_android_devices]}")
+    logger.info(f"iOS devices: {[device.id for device in all_ios_devices]}")
+
+    send_bulk(title, title, data, android_devices=devices["android"], ios_devices=devices["ios"])
+
 
 
 def send_returned_order_to_driver(order_id):

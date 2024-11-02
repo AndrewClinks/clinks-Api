@@ -109,10 +109,10 @@ def _create_delivery_requests(order_id, max_distance):
     delivery_requests = DeliveryRequest.create_for(order, max_distance)
 
     logger.info(f'Sending notification to drivers {delivery_requests}')
-    # if delivery_requests:
-    #     send_notification("send_delivery_requests", delivery_requests)
+    if delivery_requests:
+        send_notification("send_delivery_requests", delivery_requests)
 
-
+# This is triggered after the driver accepts the delivery request
 @shared_task(
     name="set_delivery_requests_as_missed",
     ignore_result=True,
@@ -168,7 +168,7 @@ def cancel_driver_not_found_or_expired_orders():
         try:
             order.payment.refund()
         except Exception as e:
-            logger.info(f"Failure while cancel_driver_not_found_or_expired_orders: {e}")
+            logger.info(f"Refund attempted for expired order but failed: {e}")
             continue
         logger.info(f"Automated task: Vendor did not accept, Refunded order {order.id}")
         order.status = Constants.ORDER_STATUS_REJECTED
@@ -191,11 +191,11 @@ def cancel_driver_not_found_or_expired_orders():
 def send_notification(notification_function_to_be_triggered, *args):
     from .utils import Notification
 
-    logger.info(f"Start > send_notification with function: {notification_function_to_be_triggered}")
+    #logger.info(f"Start > send_notification with function: {notification_function_to_be_triggered}")
 
     getattr(Notification, notification_function_to_be_triggered)(*args)
 
-    logger.info(f"End > send_notification with function: {notification_function_to_be_triggered}")
+    logger.info(f"Completed Queued Task: send_notification: {notification_function_to_be_triggered}")
 
 
 @shared_task(
