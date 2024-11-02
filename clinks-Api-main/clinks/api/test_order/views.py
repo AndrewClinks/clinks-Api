@@ -35,7 +35,7 @@ class CreateTestOrder(SmartPaginationAPIView):
         return True
 
     def post(self, request, *args, **kwargs):
-        logger.info(f"CreateTestOrder called with request: {request}")
+        # logger.info(f"CreateTestOrder called with request: {request}")
         venue = request.data.get('venue')
         menu_items = MenuItem.objects.filter(menu_id=venue) 
 
@@ -119,7 +119,7 @@ class CreateTestOrder(SmartPaginationAPIView):
                 "previous": None  # No previous page
             }
             # Mimic paginated response if only one object is returned
-            logger.info(f"Final response_data: {response_data}")
+            # logger.info(f"Final response_data: {response_data}")
             return Response(response_data)
         else:
             logger.error(f"TEST ORDER Validation failed with errors: {serializer.errors}")

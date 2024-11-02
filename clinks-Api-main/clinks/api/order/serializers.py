@@ -55,7 +55,7 @@ class OrderCreateSerializer(CreateModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)  # Call the superclass initializer
-        logger.info("OrderCreateSerializer instantiated with context: %s", self.context)
+        # logger.info("OrderCreateSerializer instantiated with context: %s", self.context)
         logger.info("OrderCreateSerializer initial data: %s", self.initial_data)
 
     class Meta:
@@ -117,7 +117,7 @@ class OrderCreateSerializer(CreateModelSerializer):
 
         #This creates an api_payment entry during validation of the order
         logger.info(f"Attributes sent to pay method: {attrs}")
-        logger.info(f"Subtotal sent to pay method: {subtotal}")
+        # logger.info(f"Subtotal sent to pay method: {subtotal}")
         self.pay(attrs, subtotal)
         return attrs
 
@@ -212,7 +212,7 @@ class OrderCreateSerializer(CreateModelSerializer):
         logger.debug("Driver verification number: %s", validated_data["driver_verification_number"])
 
         # Log the final validated data before creating the order
-        logger.info("Final validated_data before creating order: %s", validated_data)
+        # logger.info("Final validated_data before creating order: %s", validated_data)
 
         # Create the order
         order = Order.objects.create(**validated_data)

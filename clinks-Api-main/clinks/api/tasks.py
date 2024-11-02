@@ -55,7 +55,7 @@ def update_stats_for_order(order_id):
     from .daily_stat.models import DailyStat
     from .menu_item.models import MenuItem
 
-    logger.info(f"Start > update_stats_for_order")
+    # logger.info(f"Start > update_stats_for_order")
 
     order = Order.objects.get(id=order_id)
     if order.status == Constants.ORDER_STATUS_PENDING:
@@ -76,7 +76,7 @@ def update_stats_for_order(order_id):
         driver = order.driver
         driver.update_stats_for_delivered_order(order)
 
-    logger.info(f"End > update_stats_for_order")
+    # logger.info(f"End > update_stats_for_order")
 
 
 @shared_task(
