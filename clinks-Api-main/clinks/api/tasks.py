@@ -85,7 +85,7 @@ def update_stats_for_order(order_id):
     base=TransactionAwareTask
 )
 def create_delivery_requests(order_id, max_distance=Api.LOWER_MAX_DRIVER_DISTANCE_TO_VENUE_IN_KMS):
-    logger.info(f"Start > create_delivery_requests")
+    logger.info(f"create_delivery_requests for {order_id} with max_distance: {max_distance}")
 
     _create_delivery_requests(order_id, max_distance)
 
@@ -98,12 +98,15 @@ def _create_delivery_requests(order_id, max_distance):
     from .order.models import Order
     from .delivery_request.models import DeliveryRequest
 
+    logger.info('Starting _create_delivery_requests for {order_id}')
+
     order = Order.objects.get(id=order_id)
 
     delivery_requests = DeliveryRequest.create_for(order, max_distance)
 
-    if delivery_requests:
-        send_notification("send_delivery_requests", delivery_requests)
+    logger.info('Sending notificaiton to drivers {delivery_requests}')
+    # if delivery_requests:
+    #     send_notification("send_delivery_requests", delivery_requests)
 
 
 @shared_task(

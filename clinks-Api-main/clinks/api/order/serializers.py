@@ -271,7 +271,8 @@ class OrderCreateSerializer(CreateModelSerializer):
 
 
 class OrderCompanyMemberEditSerializer(EditModelSerializer):
-
+    # Parent of Detail is SmartDetailAPIView 
+    # Parent first calls validate and then update in quick succession
     class Meta:
         model = Order
         fields = ["status", "delivery_status"]
@@ -283,6 +284,9 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
         return self.validate_enum_field("delivery status", delivery_status, [Constants.DELIVERY_STATUS_OUT_FOR_DELIVERY, Constants.DELIVERY_STATUS_RETURNED])
 
     def validate(self, attrs):
+        # Log validation start and the provided attributes
+        logger.info(f"Starting validation for Order {self.instance.id} with attrs: {attrs}")
+        
         status = attrs.get("status", None)
         delivery_status = attrs.get("delivery_status", None)
 
@@ -307,46 +311,63 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
 
         now = DateUtils.now()
         if status == Constants.ORDER_STATUS_LOOKING_FOR_DRIVER:
+            logger.info(f"Order {self.instance.id} marked as LOOKING_FOR_DRIVER, setting started_looking_for_drivers_at")
             attrs["started_looking_for_drivers_at"] = now
         elif status == Constants.ORDER_STATUS_REJECTED:
+            logger.info(f"Order {self.instance.id} marked as ORDER_STATUS_REJECTED, refunding")
             attrs["rejected_at"] = now
             attrs["rejection_reason"] = Constants.ORDER_REJECTION_REASON_REJECTED_BY_VENUE
             self.instance.payment.refund()
 
         if delivery_status == Constants.DELIVERY_STATUS_OUT_FOR_DELIVERY:
+                logger.info(f"Order {self.instance.id} marked as DELIVERY_STATUS_OUT_FOR_DELIVERY")
                 attrs["collected_at"] = now
         elif delivery_status == Constants.DELIVERY_STATUS_RETURNED:
+                logger.info(f"Order {self.instance.id} marked as DELIVERY_STATUS_RETURNED")
                 attrs["returned_at"] = now
                 self.instance.payment.returned(self.instance)
 
         return attrs
 
     def update(self, instance, validated_data):
+        logger.info(f"Updating Order {instance.id} with validated_data: {validated_data}")
+
+        # If not in the request then set to None but doesnt change db value.
         status = validated_data.get("status", None)
         delivery_status = validated_data.get("delivery_status", None)
 
-        order = super(OrderCompanyMemberEditSerializer, self).update(instance, validated_data)
+        try:
+            order = super(OrderCompanyMemberEditSerializer, self).update(instance, validated_data)
+            logger.info(f"Order {order.id} status updated to {order.status}")
 
-        if status is Constants.ORDER_STATUS_LOOKING_FOR_DRIVER:
-            create_delivery_requests.delay_on_commit(order.id)
+            if status is Constants.ORDER_STATUS_LOOKING_FOR_DRIVER:
+                logger.info(f"Updating {order.id} ORDER_STATUS_LOOKING_FOR_DRIVER create_delivery_requests")
+                create_delivery_requests.delay_on_commit(order.id)
 
-        if status is Constants.ORDER_STATUS_LOOKING_FOR_DRIVER or status is Constants.ORDER_STATUS_REJECTED:
-            update_stats_for_order.delay_on_commit(order.id)
+            if status is Constants.ORDER_STATUS_LOOKING_FOR_DRIVER or status is Constants.ORDER_STATUS_REJECTED:
+                logger.info(f"Updating {order.id} ORDER_STATUS_LOOKING_FOR_DRIVER or ORDER_STATUS_REJECTED update_stats_for_order")
+                update_stats_for_order.delay_on_commit(order.id)
 
-        if status == Constants.ORDER_STATUS_REJECTED:
-            send_notification.delay_on_commit("send_order_for_customer", order.id, status)
+            if status == Constants.ORDER_STATUS_REJECTED:
+                logger.info(f"Updating {order.id} ORDER_STATUS_REJECTED send_notification")
+                send_notification.delay_on_commit("send_order_for_customer", order.id, status)
 
-        if delivery_status is Constants.DELIVERY_STATUS_OUT_FOR_DELIVERY:
-            send_notification.delay_on_commit("send_order_for_customer", order.id, None, delivery_status)
+            if delivery_status is Constants.DELIVERY_STATUS_OUT_FOR_DELIVERY:
+                logger.info(f"Updating {order.id} DELIVERY_STATUS_OUT_FOR_DELIVERY delay_on_commit")
+                send_notification.delay_on_commit("send_order_for_customer", order.id, None, delivery_status)
 
-        if delivery_status == Constants.DELIVERY_STATUS_RETURNED:
-            driver = order.driver
-            driver.current_delivery_request = None
-            driver.save()
+            if delivery_status == Constants.DELIVERY_STATUS_RETURNED:
+                logger.info(f"Updating {order.id} DELIVERY_STATUS_RETURNED delay_on_commit driver.current_delivery_request = None")
+                driver = order.driver
+                driver.current_delivery_request = None
+                driver.save()
 
-            send_notification.delay_on_commit("send_returned_order_to_driver", order.id)
+                send_notification.delay_on_commit("send_returned_order_to_driver", order.id)
 
-        return order
+            return order
+        except Exception as e:
+            logger.error(f"Error updating Order {instance.id}: {str(e)}")
+            raise
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
