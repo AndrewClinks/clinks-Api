@@ -35,6 +35,7 @@ class CreateTestOrder(SmartPaginationAPIView):
         return True
 
     def post(self, request, venue_id, *args, **kwargs):
+        logger("CreateTestOrder called with request: {request}")
         venue = Venue.objects.get(id=venue_id)
         menu_items = MenuItem.objects.filter(menu_id=venue_id) 
 
@@ -93,7 +94,8 @@ class CreateTestOrder(SmartPaginationAPIView):
             },
             "items": items,  # The items pulled from the database for the venue
             "instructions": "Test order instructions",  # Optional
-            "address": 3 # Optional
+            "address": 3, # Optional
+            "payment_intent_id": "mock_stripe_charge_id" # Implies second call after payment complete
         }
 
         # Andrew Scannell (this is normally added by the backend from the auth request of the user)

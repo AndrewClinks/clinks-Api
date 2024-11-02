@@ -8,6 +8,8 @@ from django.db import transaction
 
 from ..utils import Message, QueryParams, Constants, Export, Exception as CustomException
 
+import logging
+logger = logging.getLogger('clinks-api-live')
 
 class SmartAPIView(APIView):
 
@@ -410,7 +412,7 @@ class SmartPaginationAPIView(PaginationAPIView):
 
     @transaction.atomic
     def post(self, request):
-
+        logger.info(f"Order POST request: {request.data}")
         if not self.has_permission(request, "POST"):
             return self.get_permission_denied_response(request, "POST")
 

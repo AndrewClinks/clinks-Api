@@ -115,6 +115,9 @@ class OrderCreateSerializer(CreateModelSerializer):
         if subtotal < Setting.get_minimum_order_amount():
             self.raise_validation_error("Order", "Minimum order value has not reached")
 
+        #This creates an api_payment entry during validation of the order
+        logger.info(f"Attributes sent to pay method: {attrs}")
+        logger.info(f"Subtotal sent to pay method: {subtotal}")
         self.pay(attrs, subtotal)
         return attrs
 
@@ -141,6 +144,7 @@ class OrderCreateSerializer(CreateModelSerializer):
         else:
             delivery_distance = DeliveryDistance.get_by_distance(Distance.between(venue.address.point, customer.address.point, True))
 
+
         service_fee_percentage = venue.service_fee_percentage
         service_fee = int(round(subtotal * service_fee_percentage))
 
@@ -162,6 +166,8 @@ class OrderCreateSerializer(CreateModelSerializer):
 
         ## !!!!! TEST ORDER PAYMENT !!!!!
         if is_test_order:
+            # Hard coding values directly to the Payment model instead of using PaymentCreateSerializer
+            # This should make it appear as if this is a second call that is validating the payment
             # Fetch a mock card instance, assuming '16' is the ID of the card you want to use
             mock_card = Card.objects.get(id=1)
 
@@ -179,12 +185,14 @@ class OrderCreateSerializer(CreateModelSerializer):
             payment_data["total"] = total_amount  # Ensure total is set
             payment_data.pop('expected_price', None)  # Remove the expected price from the payment data
 
-            # Create a mock Payment object
+            # Create a mock Payment object complete with the stripe_charge_id
             payment = Payment.objects.create(**payment_data)
         else:
             # This is where it goes off to stripe so be careful with this
             serializer = PaymentCreateSerializer(data=payment_data)
+            
             serializer.is_valid(raise_exception=True)
+            logger.info(f"OrderCreateSerializer.validated_data: {serializer.validated_data}")
             payment = serializer.create(serializer.validated_data)
         
         attrs["payment"] = payment

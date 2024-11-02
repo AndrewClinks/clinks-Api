@@ -77,9 +77,23 @@ class PaymentCreateSerializer(CreateModelSerializer):
 
         # If payment_intent_id is not provided (1st call from app), then call get_payment_intent
         # If payment_intent_id is provided (2nd call from app), then call create_payment_intent
-        payment_intent = StripePayment.charge(self, payment_intent_id, 
-                                              lambda: StripePayment.create_payment_intent(total, currency, "Payment for order", card.stripe_payment_method_id,  company.stripe_account_id, application_fee_amount=application_fee, stripe_customer_account_id=card.customer.stripe_customer_id),
-                                              lambda: StripePayment.get_payment_intent(payment_intent_id, company.stripe_account_id),)
+        payment_intent = StripePayment.charge(
+            self,
+            payment_intent_id,
+            lambda: StripePayment.create_payment_intent(
+                total,
+                currency,
+                "Payment for order",
+                card.stripe_payment_method_id,
+                company.stripe_account_id,
+                application_fee_amount=application_fee,
+                stripe_customer_account_id=card.customer.stripe_customer_id
+            ),
+            lambda: StripePayment.get_payment_intent(
+                payment_intent_id,
+                company.stripe_account_id
+            )
+        )
 
         attrs.update(**StripePayment.get_payment_data(payment_intent, company.stripe_account_id))
 

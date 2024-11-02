@@ -75,6 +75,7 @@ def charge(serializer, payment_intent_id, create_payment_intent_function, get_pa
     except Exception as error:
         serializer.raise_validation_error("Payment", str(error))
 
+    # Adding requires_action tells the client to check the client_secret with stripe
     if payment_intent_requires_user_action(payment_intent):
         data = {
             "payment_intent_id": payment_intent.id,
