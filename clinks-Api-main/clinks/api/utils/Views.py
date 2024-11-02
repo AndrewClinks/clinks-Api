@@ -173,6 +173,7 @@ class SmartDetailAPIView(SmartAPIView):
         instance = edit_serializer.update(instance, edit_serializer.validated_data)
         detail_serializer_class = self.get_detail_serializer(request, instance)
 
+        # This calls to_representation on the OrderCompanyMemberEditSerializer
         data = detail_serializer_class(instance).data
         data = self.override_response_data(request, data)
 

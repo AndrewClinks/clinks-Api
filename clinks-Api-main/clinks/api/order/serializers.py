@@ -285,7 +285,7 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
 
     def validate(self, attrs):
         # Log validation start and the provided attributes
-        logger.info(f"Starting validation for Order {self.instance.id} with attrs: {attrs}")
+        # logger.info(f"Starting validation for Order {self.instance.id} with attrs: {attrs}")
         
         status = attrs.get("status", None)
         delivery_status = attrs.get("delivery_status", None)
@@ -311,26 +311,26 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
 
         now = DateUtils.now()
         if status == Constants.ORDER_STATUS_LOOKING_FOR_DRIVER:
-            logger.info(f"Order {self.instance.id} marked as LOOKING_FOR_DRIVER, setting started_looking_for_drivers_at")
+            # logger.info(f"Order {self.instance.id} marked as LOOKING_FOR_DRIVER, setting started_looking_for_drivers_at")
             attrs["started_looking_for_drivers_at"] = now
         elif status == Constants.ORDER_STATUS_REJECTED:
-            logger.info(f"Order {self.instance.id} marked as ORDER_STATUS_REJECTED, refunding")
+            # logger.info(f"Order {self.instance.id} marked as ORDER_STATUS_REJECTED, refunding")
             attrs["rejected_at"] = now
             attrs["rejection_reason"] = Constants.ORDER_REJECTION_REASON_REJECTED_BY_VENUE
             self.instance.payment.refund()
 
         if delivery_status == Constants.DELIVERY_STATUS_OUT_FOR_DELIVERY:
-                logger.info(f"Order {self.instance.id} marked as DELIVERY_STATUS_OUT_FOR_DELIVERY")
+                # logger.info(f"Order {self.instance.id} marked as DELIVERY_STATUS_OUT_FOR_DELIVERY")
                 attrs["collected_at"] = now
         elif delivery_status == Constants.DELIVERY_STATUS_RETURNED:
-                logger.info(f"Order {self.instance.id} marked as DELIVERY_STATUS_RETURNED")
+                # logger.info(f"Order {self.instance.id} marked as DELIVERY_STATUS_RETURNED")
                 attrs["returned_at"] = now
                 self.instance.payment.returned(self.instance)
 
         return attrs
 
     def update(self, instance, validated_data):
-        logger.info(f"Updating Order {instance.id} with validated_data: {validated_data}")
+        # logger.info(f"Updating Order {instance.id} with validated_data: {validated_data}")
 
         # If not in the request then set to None but doesnt change db value.
         status = validated_data.get("status", None)
@@ -342,7 +342,9 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
 
             if status is Constants.ORDER_STATUS_LOOKING_FOR_DRIVER:
                 logger.info(f"Updating {order.id} ORDER_STATUS_LOOKING_FOR_DRIVER create_delivery_requests")
-                create_delivery_requests.delay_on_commit(order.id)
+                # Using delay instead of delay_on_commit because there can be some lag on this task
+                # and it blocks the http response.
+                create_delivery_requests.delay(order.id)
 
             if status is Constants.ORDER_STATUS_LOOKING_FOR_DRIVER or status is Constants.ORDER_STATUS_REJECTED:
                 logger.info(f"Updating {order.id} ORDER_STATUS_LOOKING_FOR_DRIVER or ORDER_STATUS_REJECTED update_stats_for_order")

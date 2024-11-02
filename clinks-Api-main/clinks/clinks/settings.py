@@ -205,8 +205,8 @@ SERVER_EMAIL = "www.clinks.ie@gmail.com"
 # Celery - controls the background/async tasks used
 CELERY_BROKER_URL = os.environ['BROKER_URL']
 
-# celery - makes tasks synchronous for tests/local
-CELERY_TASK_ALWAYS_EAGER = True
+# celery - true makes tasks synchronous for tests/local
+CELERY_TASK_ALWAYS_EAGER = False
 
 TEST_RUNNER = 'api.test_runner.ProfileTestRunner'
 
