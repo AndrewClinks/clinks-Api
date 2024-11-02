@@ -1,24 +1,44 @@
 from rest_framework.response import Response
 from rest_framework import status
 from ..order.serializers import OrderCreateSerializer
-from ..utils.Views import SmartAPIView
+from ..utils.Views import SmartPaginationAPIView
 from ..utils.Permissions import IsAdminPermission
 from ..venue.models import Venue
+from ..order.models import Order
 from ..menu_item.models import MenuItem
 from ..order.serializers import OrderCustomerDetailSerializer
 
 import logging
 logger = logging.getLogger('clinks-api-live')
 
-class CreateTestOrder(SmartAPIView):
-    permission_classes = [IsAdminPermission]
-    create_serializer = OrderCreateSerializer
+# The Order endpoint is actually called twice 
+# 1. When the user clicks the "Order" button in the app without the payment_intent_id
+# This returns a client_secret and requires_action
+# 2. Once the app has handled 3DS etc it will call again with the payment_intent_id
 
-    def get(self, request, venue_id, *args, **kwargs):
+class CreateTestOrder(SmartPaginationAPIView):
+    permission_classes = [IsAdminPermission]
+    model = Order
+    create_serializer = OrderCreateSerializer
+    detail_serializer = OrderCustomerDetailSerializer
+
+    # def override_post_data(self, request, data):
+    #     # Set the customer field for admin test orders
+    #     if self.is_admin_request():
+    #         data["customer"] = request.user.id  # or set a specific test customer ID
+    #     return data
+
+    def has_permission(self, request, method):
+        # Allow POST method for admin requests only
+        if method != "POST" or not self.is_admin_request():
+            return False
+        return True
+
+    def post(self, request, venue_id, *args, **kwargs):
         venue = Venue.objects.get(id=venue_id)
         menu_items = MenuItem.objects.filter(menu_id=venue_id) 
 
-        # Prepare the items (based on your example data from the query)
+        # Prepare the items
         items = [
             {
                 "id": item.id,
@@ -62,24 +82,28 @@ class CreateTestOrder(SmartAPIView):
         #     "total_price": sum(item['price'] for item in items),  # Set total price
         #     "order_date": timezone.now(),
         # }
+        # See mobile app CartManager.createOrder for 
         data = {
             "venue": venue.id,  # Venue ID from your setup
-            "menu": venue.id,  # Menu ID from your setup
+            "menu": venue.id,  # Always the same as venue?
             "payment": {
                 "card": "1",  # Mock card ID
                 "expected_price": sum(item['price'] for item in items),  # Expected total price from items
                 "tip": 0,  # Assuming no tip for the test, adjust if needed
             },
             "items": items,  # The items pulled from the database for the venue
-            "instructions": "Test order instructions",  # Example instructions
-            "address": 3
+            "instructions": "Test order instructions",  # Optional
+            "address": 3 # Optional
         }
 
-        data["customer"] = 7 # Andrew Scannell (this is added by the backend from the auth request of the user)
+        # Andrew Scannell (this is normally added by the backend from the auth request of the user)
+        data["customer"] = 7 
 
         # Validate and save the new order
         serializer = self.create_serializer(data=data, context={'is_test_order': True})
+        # Valid goes to validate method in Order Serializer
         if serializer.is_valid():
+            # Save goes to create method in Order Serializer
             order = serializer.save()
             logger.info(f"TEST ORDER created successfully.")
 
