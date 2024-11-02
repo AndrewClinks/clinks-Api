@@ -168,7 +168,7 @@ class OrderCreateSerializer(CreateModelSerializer):
             # Fetch a mock currency instance, assuming '1' is the ID of the currency you want to use
             mock_currency = Currency.objects.get(id=1)
 
-            # If it's a test order, mock the payment data
+            # If it's a test order, mock the payment data as if this 
             payment_data["stripe_charge_id"] = "mock_stripe_charge_id"  # Mock charge ID
             payment_data["paid_at"] = DateUtils.now()  # Mock payment timestamp
             payment_data["card"] = mock_card
