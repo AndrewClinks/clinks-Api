@@ -87,8 +87,9 @@ def update_stats_for_order(order_id):
 )
 def create_delivery_requests(order_id, max_distance=Api.LOWER_MAX_DRIVER_DISTANCE_TO_VENUE_IN_KMS):
     _create_delivery_requests(order_id, max_distance)
-    # Schedule this task to run every 30 seconds, 5km from vendor
-    create_delivery_requests.apply_async(args=(order_id, Api.UPPER_MAX_DRIVER_DISTANCE_TO_VENUE_IN_KMS), countdown=30)
+    # Schedule this task to run every 5 seconds, 5km from vendor
+    # Setting this to every 2 seconds because it should try to get it to the driver as quickly as possible
+    create_delivery_requests.apply_async(args=(order_id, Api.UPPER_MAX_DRIVER_DISTANCE_TO_VENUE_IN_KMS), countdown=2)
 
 
 def _create_delivery_requests(order_id, max_distance):
@@ -104,6 +105,7 @@ def _create_delivery_requests(order_id, max_distance):
         logger.info(f"Order {order_id} has been accepted. Stopping further delivery requests.")
         return  # Stop further processing and scheduling if order is accepted by returning early
 
+    # This is the important logic which is run each time
     delivery_requests = DeliveryRequest.create_for(order, max_distance)
 
     logger.info('Sending notification to drivers {delivery_requests}')
@@ -136,7 +138,7 @@ def cancel_driver_not_found_or_expired_orders():
     from .all_time_stat.models import AllTimeStat
     from .utils import Constants, DateUtils
 
-    # logger.info(f"Start > cancel_driver_not_found_or_expired_orders")
+    logger.info(f"Periodic_task: cancel_driver_not_found_or_expired_orders")
 
     threshold = DateUtils.minutes_before(30)
 

@@ -60,6 +60,7 @@ urlpatterns = [
     path("delivery-fees", include("api.delivery_fee.urls"))
 ]
 
+# There is a method on the mobile app to call this endpoint, but it is unused
 if settings.DEBUG:
     from .utils.Notification import SendNotification
     urlpatterns = [

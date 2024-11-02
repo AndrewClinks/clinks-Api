@@ -7,6 +7,8 @@ from django.contrib.gis.db.models import PointField
 
 from ..utils import Constants, Log
 
+import logging
+logger = logging.getLogger('clinks-api-live')
 
 class DeliveryRequest(SmartModel):
     id = models.AutoField(primary_key=True)
@@ -27,6 +29,7 @@ class DeliveryRequest(SmartModel):
         """Return a human readable representation of the model instance."""
         return f"DeliveryRequest: id: {self.id}, driver: {self.driver}"
 
+    # Called by the celery scheduled task create_delivery_requests
     @staticmethod
     def create_for(order, max_distance):
         from ..utils import Nearby, Exception
@@ -40,18 +43,27 @@ class DeliveryRequest(SmartModel):
         queryset = Driver.objects.filter(current_delivery_request__isnull=True)
 
         queryset = queryset.exclude(delivery_requests__order=order).distinct()
-        Log.create(f"Available drivers for order: {order.id} > {queryset}")
+        Log.create(f"Available drivers for order {order.id}: {queryset}")
 
         nearby_drivers = Nearby.drivers(queryset, order, max_distance=max_distance).distinct()
-        Log.create(f"Nearby drivers for order: {order.id} > {nearby_drivers}")
+        Log.create(f"Nearby drivers for order {order.id}: {nearby_drivers}")
 
         delivery_requests = []
 
-        for driver in nearby_drivers:
-            delivery_requests.append(DeliveryRequest(driver=driver, order=order, status=Constants.DELIVERY_REQUEST_STATUS_PENDING, driver_location=driver.last_known_location))
+        if nearby_drivers:
+            for driver in nearby_drivers:
+                delivery_requests.append(DeliveryRequest(
+                    driver=driver,
+                    order=order,
+                    status=Constants.DELIVERY_REQUEST_STATUS_PENDING,
+                    driver_location=driver.last_known_location
+                ))
 
-        delivery_requests = DeliveryRequest.objects.bulk_create(delivery_requests)
-        Log.create(f"Created delivery requests for order: {order.id} > {delivery_requests}")
+            delivery_requests = DeliveryRequest.objects.bulk_create(delivery_requests)
+            logger.info(f"Created delivery requests for order {order.id}: {delivery_requests}")
+        else:
+            logger.info(f"No nearby drivers found for order {order.id}")
+        
         return delivery_requests
 
 
