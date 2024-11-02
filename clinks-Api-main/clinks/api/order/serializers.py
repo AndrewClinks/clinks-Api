@@ -341,25 +341,25 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
             logger.info(f"Order {order.id} status updated to {order.status}")
 
             if status is Constants.ORDER_STATUS_LOOKING_FOR_DRIVER:
-                logger.info(f"Updating {order.id} ORDER_STATUS_LOOKING_FOR_DRIVER create_delivery_requests")
+                #logger.info(f"Updating {order.id} ORDER_STATUS_LOOKING_FOR_DRIVER create_delivery_requests")
                 # Using delay instead of delay_on_commit because there can be some lag on this task
                 # and it blocks the http response.
                 create_delivery_requests.delay(order.id)
 
             if status is Constants.ORDER_STATUS_LOOKING_FOR_DRIVER or status is Constants.ORDER_STATUS_REJECTED:
-                logger.info(f"Updating {order.id} ORDER_STATUS_LOOKING_FOR_DRIVER or ORDER_STATUS_REJECTED update_stats_for_order")
+                #logger.info(f"Updating {order.id} ORDER_STATUS_LOOKING_FOR_DRIVER or ORDER_STATUS_REJECTED update_stats_for_order")
                 update_stats_for_order.delay_on_commit(order.id)
 
             if status == Constants.ORDER_STATUS_REJECTED:
-                logger.info(f"Updating {order.id} ORDER_STATUS_REJECTED send_notification")
+                #logger.info(f"Updating {order.id} ORDER_STATUS_REJECTED send_notification")
                 send_notification.delay_on_commit("send_order_for_customer", order.id, status)
 
             if delivery_status is Constants.DELIVERY_STATUS_OUT_FOR_DELIVERY:
-                logger.info(f"Updating {order.id} DELIVERY_STATUS_OUT_FOR_DELIVERY delay_on_commit")
+                #logger.info(f"Updating {order.id} DELIVERY_STATUS_OUT_FOR_DELIVERY delay_on_commit")
                 send_notification.delay_on_commit("send_order_for_customer", order.id, None, delivery_status)
 
             if delivery_status == Constants.DELIVERY_STATUS_RETURNED:
-                logger.info(f"Updating {order.id} DELIVERY_STATUS_RETURNED delay_on_commit driver.current_delivery_request = None")
+                #logger.info(f"Updating {order.id} DELIVERY_STATUS_RETURNED delay_on_commit driver.current_delivery_request = None")
                 driver = order.driver
                 driver.current_delivery_request = None
                 driver.save()

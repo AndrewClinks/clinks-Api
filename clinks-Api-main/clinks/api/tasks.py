@@ -79,19 +79,16 @@ def update_stats_for_order(order_id):
     # logger.info(f"End > update_stats_for_order")
 
 
+# This is triggered after accept button pressed by vendor
 @shared_task(
     name="create_delivery_requests",
     ignore_result=True,
     base=TransactionAwareTask
 )
 def create_delivery_requests(order_id, max_distance=Api.LOWER_MAX_DRIVER_DISTANCE_TO_VENUE_IN_KMS):
-    logger.info(f"create_delivery_requests for {order_id} with max_distance: {max_distance}")
-
     _create_delivery_requests(order_id, max_distance)
-
+    # Schedule this task to run every 30 seconds, 5km from vendor
     create_delivery_requests.apply_async(args=(order_id, Api.UPPER_MAX_DRIVER_DISTANCE_TO_VENUE_IN_KMS), countdown=30)
-
-    logger.info(f"End > create_delivery_requests")
 
 
 def _create_delivery_requests(order_id, max_distance):
@@ -101,12 +98,17 @@ def _create_delivery_requests(order_id, max_distance):
     logger.info('Starting _create_delivery_requests for {order_id}')
 
     order = Order.objects.get(id=order_id)
+    
+    # Check if the order is already accepted, and if so, do not continue
+    if order.status == Constants.ORDER_STATUS_ACCEPTED:
+        logger.info(f"Order {order_id} has been accepted. Stopping further delivery requests.")
+        return  # Stop further processing and scheduling if order is accepted by returning early
 
     delivery_requests = DeliveryRequest.create_for(order, max_distance)
 
-    logger.info('Sending notificaiton to drivers {delivery_requests}')
-    # if delivery_requests:
-    #     send_notification("send_delivery_requests", delivery_requests)
+    logger.info('Sending notification to drivers {delivery_requests}')
+    if delivery_requests:
+        send_notification("send_delivery_requests", delivery_requests)
 
 
 @shared_task(
@@ -117,11 +119,11 @@ def _create_delivery_requests(order_id, max_distance):
 def set_delivery_requests_as_missed(order_id):
     from .delivery_request.models import DeliveryRequest
 
-    logger.info(f"Start > update_delivery_requests_as_missed")
+    logger.info(f"Start > update_delivery_requests_as_missedm {order_id}")
 
     DeliveryRequest.objects.filter(order_id=order_id, status=Constants.DELIVERY_REQUEST_STATUS_PENDING).update(status=Constants.DELIVERY_REQUEST_STATUS_MISSED)
 
-    logger.info(f"End > update_delivery_requests_as_missed")
+    logger.info(f"End > update_delivery_requests_as_missed {order_id}")
 
 
 @periodic_task(
@@ -134,7 +136,7 @@ def cancel_driver_not_found_or_expired_orders():
     from .all_time_stat.models import AllTimeStat
     from .utils import Constants, DateUtils
 
-    logger.info(f"Start > cancel_driver_not_found_or_expired_orders")
+    # logger.info(f"Start > cancel_driver_not_found_or_expired_orders")
 
     threshold = DateUtils.minutes_before(30)
 
@@ -146,7 +148,7 @@ def cancel_driver_not_found_or_expired_orders():
         except Exception as e:
             logger.info(f"Failure while cancel_driver_not_found_or_expired_orders: {e}")
             continue
-
+        logger.info(f"Automated task: Driver not found, Refunded order {order.id}")
         order.status = Constants.ORDER_STATUS_REJECTED
         order.rejection_reason = Constants.ORDER_REJECTION_REASON_NO_DRIVER_FOUND
         order.save()
@@ -166,6 +168,7 @@ def cancel_driver_not_found_or_expired_orders():
         except Exception as e:
             logger.info(f"Failure while cancel_driver_not_found_or_expired_orders: {e}")
             continue
+        logger.info(f"Automated task: Vendor did not accept, Refunded order {order.id}")
         order.status = Constants.ORDER_STATUS_REJECTED
         order.rejection_reason = Constants.ORDER_REJECTION_REASON_EXPIRED
         order.save()
@@ -175,7 +178,7 @@ def cancel_driver_not_found_or_expired_orders():
     if count_of_expired_orders > 0:
         AllTimeStat.update(Constants.ALL_TIME_STAT_EXPIRED_ORDER_COUNT, count_of_expired_orders)
 
-    logger.info(f"End > cancel_driver_not_found_or_expired_orders")
+    # logger.info(f"End > cancel_driver_not_found_or_expired_orders")
 
 
 @shared_task(
