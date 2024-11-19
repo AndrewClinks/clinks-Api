@@ -86,7 +86,8 @@ def update_stats_for_order(order_id):
     base=TransactionAwareTask
 )
 def create_delivery_requests(order_id, max_distance=Api.LOWER_MAX_DRIVER_DISTANCE_TO_VENUE_IN_KMS):
-    if not _create_delivery_requests(order_id, max_distance):
+    # If _create_delivery_requests returns True then stop further processing, else start looping
+    if _create_delivery_requests(order_id, max_distance):
         # Schedule this task to run every 5 seconds, 5km from vendor
         # Setting this to every 2 seconds because it should try to get it to the driver as quickly as possible
         create_delivery_requests.apply_async(args=(order_id, Api.UPPER_MAX_DRIVER_DISTANCE_TO_VENUE_IN_KMS), countdown=2)
@@ -100,7 +101,7 @@ def _create_delivery_requests(order_id, max_distance):
 
     order = Order.objects.get(id=order_id)
     
-    # Check if the order is already accepted, and if so, do not continue
+    # If order is no longer looking for driver, then stop further processing
     if order.status != Constants.ORDER_STATUS_LOOKING_FOR_DRIVER:
         logger.info(f"Order {order_id} has been accepted. Stopping further delivery requests.")
         return False  # Stop further processing and scheduling if order is accepted by returning early
@@ -108,7 +109,7 @@ def _create_delivery_requests(order_id, max_distance):
     # This is the important logic which is run each time
     delivery_requests = DeliveryRequest.create_for(order, max_distance)
 
-    logger.info(f'Sending notification to drivers {delivery_requests}')
+    logger.info(f'Sending notification to new drivers {delivery_requests}')
     if delivery_requests:
         send_notification("send_delivery_requests", delivery_requests)
     
