@@ -115,7 +115,8 @@ def _create_delivery_requests(order_id, max_distance):
     
     return True
 
-# This is triggered after the driver accepts the delivery request
+# This is triggered after a driver accepts the delivery request
+# To stop the request from being accepted by multiple drivers
 @shared_task(
     name="set_delivery_requests_as_missed",
     ignore_result=True,
@@ -125,7 +126,7 @@ def set_delivery_requests_as_missed(order_id):
     from .delivery_request.models import DeliveryRequest
 
     # logger.info(f"Scheduled task started: update_delivery_requests_as_missedm {order_id}")
-
+    # This doesn't set the active deliveryrequest as missed because that already has status accepted
     DeliveryRequest.objects.filter(order_id=order_id, status=Constants.DELIVERY_REQUEST_STATUS_PENDING).update(status=Constants.DELIVERY_REQUEST_STATUS_MISSED)
 
     logger.info(f"Scheduled task: update_delivery_requests_as_missed {order_id}")
@@ -138,6 +139,7 @@ def set_delivery_requests_as_missed(order_id):
 )
 def cancel_driver_not_found_or_expired_orders():
     from .order.models import Order
+    from .delivery_request.models import DeliveryRequest
     from .all_time_stat.models import AllTimeStat
     from .utils import Constants, DateUtils
 
@@ -145,6 +147,7 @@ def cancel_driver_not_found_or_expired_orders():
 
     threshold = DateUtils.minutes_before(30)
 
+    # FIRST CHECK FOR NO DRIVER FOUND ORDERS
     no_driver_found_orders = Order.objects.filter(status=Constants.ORDER_STATUS_LOOKING_FOR_DRIVER, started_looking_for_drivers_at__lte=threshold)
 
     for order in no_driver_found_orders:
@@ -158,13 +161,19 @@ def cancel_driver_not_found_or_expired_orders():
         order.rejection_reason = Constants.ORDER_REJECTION_REASON_NO_DRIVER_FOUND
         order.save()
 
-        order.delivery_requests.filter(status=Constants.DELIVERY_REQUEST_STATUS_PENDING).update(status=Constants.DELIVERY_REQUEST_STATUS_EXPIRED)
+        # Cancel all pending delivery requests
+        order.delivery_requests.filter(
+            status=Constants.DELIVERY_REQUEST_STATUS_PENDING
+        ).update(
+            status=Constants.DELIVERY_REQUEST_STATUS_EXPIRED
+        )
 
     count_of_orders = no_driver_found_orders.count()
 
     if count_of_orders > 0:
         AllTimeStat.update(Constants.ALL_TIME_STAT_NO_DRIVER_FOUND_ORDER_COUNT, count_of_orders)
 
+    # NOW CHECK FOR EXPIRED ORDERS
     expired_orders = Order.objects.filter(status=Constants.ORDER_STATUS_PENDING, created_at__lte=threshold)
 
     for order in expired_orders:
@@ -183,8 +192,11 @@ def cancel_driver_not_found_or_expired_orders():
     if count_of_expired_orders > 0:
         AllTimeStat.update(Constants.ALL_TIME_STAT_EXPIRED_ORDER_COUNT, count_of_expired_orders)
 
-    # logger.info(f"End > cancel_driver_not_found_or_expired_orders")
-
+    # AND FINALLY set all pending delivery requests to missed for pending requests older than 30 minutes
+    driver_missed_delivery_requests = DeliveryRequest.objects.filter(status=Constants.DELIVERY_REQUEST_STATUS_PENDING, created_at__lte=threshold)
+    for delivery_request in driver_missed_delivery_requests:
+        delivery_request.status = Constants.DELIVERY_REQUEST_STATUS_MISSED
+        delivery_request.save()
 
 @shared_task(
     name="send_notification",

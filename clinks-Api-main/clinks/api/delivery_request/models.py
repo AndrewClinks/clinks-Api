@@ -52,7 +52,7 @@ class DeliveryRequest(SmartModel):
 
         if nearby_drivers:
             for driver in nearby_drivers:
-                # Make sure there are not existing delivery requests already
+                # Make sure the driver does not have an existing delivery request already
                 existing_request = DeliveryRequest.objects.filter(
                     driver=driver,
                     order=order,
