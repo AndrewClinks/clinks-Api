@@ -35,6 +35,7 @@ class Driver(SmartModel):
 
     total_accept_time = models.PositiveIntegerField(default=0)
 
+    #4326 uses the WGS 84 coordinate system that represents coordinates as latitude and longitude.
     last_known_location = PointField(srid=4326, null=True)
 
     last_known_location_updated_at = models.DateTimeField(null=True)

@@ -115,6 +115,7 @@ class DriverEditSerializer(EditModelSerializer):
         if latitude and longitude:
             point = Point(longitude, latitude)
             validated_data['last_known_location'] = point
+            
 
         if reset_last_known_location:
             validated_data["last_known_location"] = None
@@ -122,7 +123,7 @@ class DriverEditSerializer(EditModelSerializer):
         if "last_known_location" in validated_data:
             instance.last_known_location = validated_data["last_known_location"]
             instance.last_known_location_updated_at = DateUtils.now()
-            instance.save(update_fields=["last_known_location"])
+            instance.save(update_fields=["last_known_location", "last_known_location_updated_at"])
 
         return instance
 
