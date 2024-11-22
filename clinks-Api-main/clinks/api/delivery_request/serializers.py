@@ -32,7 +32,7 @@ class DeliveryRequestEditSerializer(EditModelSerializer):
             self.raise_validation_error("DeliveryRequest", "You can't accept another delivery before finishing up with current order")
 
         if accepted and order.driver is not None:
-            self.raise_validation_error("DeliveryRequest", "This request already accepted by different driver")
+            self.raise_validation_error("DeliveryRequest", "This request was already accepted by a different driver")
 
         if accepted and order.status != Constants.ORDER_STATUS_LOOKING_FOR_DRIVER:
             self.raise_validation_error("DeliveryRequest", "This order is not looking for drivers")
@@ -47,9 +47,9 @@ class DeliveryRequestEditSerializer(EditModelSerializer):
     def update(self, instance, validated_data):
         delivery_request = super(DeliveryRequestEditSerializer, self).update(instance, validated_data)
 
+        # If accepted then update the order and other deliveryrequests, if rejected just return
         if delivery_request.status == Constants.DELIVERY_REQUEST_STATUS_ACCEPTED:
             delivery_request.order.accepted(delivery_request)
-
             set_delivery_requests_as_missed.delay_on_commit(delivery_request.order.id)
 
         return delivery_request

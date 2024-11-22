@@ -118,6 +118,8 @@ class OrderCreateSerializer(CreateModelSerializer):
         #This creates an api_payment entry during validation of the order
         logger.info(f"Attributes sent to pay method: {attrs}")
         # logger.info(f"Subtotal sent to pay method: {subtotal}")
+
+        # The payment is created here, if its not successful then the order is not created
         self.pay(attrs, subtotal)
         return attrs
 
@@ -189,8 +191,10 @@ class OrderCreateSerializer(CreateModelSerializer):
             payment = Payment.objects.create(**payment_data)
         else:
             # This is where it goes off to stripe so be careful with this
+            # The PaymentCreateSerializer differentiates between the two calls
             serializer = PaymentCreateSerializer(data=payment_data)
             
+            # If not valid then I think this function doesnt complete?
             serializer.is_valid(raise_exception=True)
             logger.info(f"OrderCreateSerializer.validated_data: {serializer.validated_data}")
             payment = serializer.create(serializer.validated_data)
@@ -201,10 +205,7 @@ class OrderCreateSerializer(CreateModelSerializer):
     def create(self, validated_data):
         logger.info("Starting order creation process")
 
-        # Add detailed logging for validated data
-        logger.debug("Initial validated_data: %s", validated_data)
-
-        # Process data
+        # get_data logs the validated_data and 
         validated_data["data"] = self.get_data(validated_data)
         logger.debug("Data after get_data: %s", validated_data["data"])
 
@@ -214,7 +215,11 @@ class OrderCreateSerializer(CreateModelSerializer):
         # Log the final validated data before creating the order
         # logger.info("Final validated_data before creating order: %s", validated_data)
 
-        # Create the order
+        # Create the order in the db!!!
+        # there is a constraint on the api_order table that stops 2 orders with same payment_intent_id
+        # I think this is how it stops the same order being created twice with the second call
+        # But that would throw an integrity error from the db so I'm not sure.
+        # TODO: confirm that this is called twice during a real order, and whether there is a db error
         order = Order.objects.create(**validated_data)
         logger.info("Order created with ID: %s", order.id)
         logger.debug("Order instance fields: %s", vars(order))
@@ -297,17 +302,17 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
             self.raise_validation_error("Order", "You can only change status of pending orders")
 
         if status == Constants.ORDER_STATUS_REJECTED and (self.instance.delivery_status != Constants.DELIVERY_STATUS_PENDING or self.instance.driver != None):
-            self.raise_validation_error("Order", "You cannot reject this order")
+            self.raise_validation_error("Order", "You cannot reject this order because the driver is trying to deliver it")
 
         if delivery_status is not None:
             if self.instance.driver is None:
                 self.raise_validation_error("Order", "Order has to have a driver assigned to change delivery status")
 
             if delivery_status == Constants.DELIVERY_STATUS_OUT_FOR_DELIVERY and self.instance.delivery_status != Constants.DELIVERY_STATUS_PENDING:
-                self.raise_validation_error("Order", "Order status has to be pending")
+                self.raise_validation_error("Order", "Once delivered delivery status must be marked as pending first then delivered once code is provided")
 
             if delivery_status == Constants.DELIVERY_STATUS_RETURNED and self.instance.delivery_status != Constants.DELIVERY_STATUS_FAILED:
-                self.raise_validation_error("Order", "Order status has to be failed")
+                self.raise_validation_error("Order", "Returned orders must be marked as delivery status failed")
 
         now = DateUtils.now()
         if status == Constants.ORDER_STATUS_LOOKING_FOR_DRIVER:
@@ -329,6 +334,7 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
 
         return attrs
 
+    # For Accept/Reject
     def update(self, instance, validated_data):
         # logger.info(f"Updating Order {instance.id} with validated_data: {validated_data}")
 
@@ -337,6 +343,9 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
         delivery_status = validated_data.get("delivery_status", None)
 
         try:
+            # Updates either status or delivery_status can't be both at the same time
+            # Updates status = Constants.ORDER_STATUS_LOOKING_FOR_DRIVER or Constants.ORDER_STATUS_REJECTED
+            # Updates delivery_status = Constants.DELIVERY_STATUS_OUT_FOR_DELIVERY or Constants.DELIVERY_STATUS_RETURNED
             order = super(OrderCompanyMemberEditSerializer, self).update(instance, validated_data)
             logger.info(f"Order {order.id} status updated to {order.status}")
 

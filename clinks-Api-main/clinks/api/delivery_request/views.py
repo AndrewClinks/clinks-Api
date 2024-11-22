@@ -28,11 +28,15 @@ class List(SmartPaginationAPIView):
         return DeliveryRequest.objects.filter(driver=self.get_driver_from_request())
 
     def add_filters(self, queryset, request):
+        # Get requests that are pending or accepted for current driver, if no accepted default to pending
         status = QueryParams.get_enum(request, "status", [Constants.DELIVERY_REQUEST_STATUS_PENDING, Constants.DELIVERY_REQUEST_STATUS_ACCEPTED], Constants.DELIVERY_REQUEST_STATUS_PENDING)
         last_rejected_order_id = QueryParams.get_int(request, "last_rejected_order_id")
         if status:
             queryset = queryset.filter(status=status)
 
+        # This filters out all orders ids before the rejected
+        # TODO: be more intelligent and only filter out the rejected order
+        # Because what if there are lots of orders and rejecting the current blocks them from older still activeo ones
         if last_rejected_order_id:
             queryset = queryset.filter(order_id__gt=last_rejected_order_id)
 
