@@ -59,3 +59,5 @@ venv/*
 
 .env
 clinks-1f1c7-1a35693e131a.json
+
+data.txt
