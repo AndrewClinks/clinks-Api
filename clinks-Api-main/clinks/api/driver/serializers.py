@@ -16,6 +16,8 @@ from ..utils import Constants, DateUtils
 from .models import Driver
 from ..setting.models import Setting
 
+import logging
+logger = logging.getLogger('clinks-api-live')
 
 class DriverCreateSerializer(CreateModelSerializer):
 
@@ -100,7 +102,6 @@ class DriverEditSerializer(EditModelSerializer):
     def validate(self, attrs):
         latitude = attrs.get("latitude", None)
         longitude = attrs.get("longitude", None)
-
         if (latitude and not longitude) or (not latitude and longitude):
             self.raise_validation_error("Driver", "'latitude' or 'longitude' is null when one of them is provided")
 
@@ -108,6 +109,7 @@ class DriverEditSerializer(EditModelSerializer):
 
     def update(self, instance, validated_data):
         from django.contrib.gis.geos import Point
+        # Not sure what this is doing
         reset_last_known_location = "latitude" in validated_data and "longitude" in validated_data and not validated_data["latitude"] and not validated_data["longitude"]
         longitude = validated_data.pop('longitude', None)
         latitude = validated_data.pop('latitude', None)
@@ -115,7 +117,6 @@ class DriverEditSerializer(EditModelSerializer):
         if latitude and longitude:
             point = Point(longitude, latitude)
             validated_data['last_known_location'] = point
-            
 
         if reset_last_known_location:
             validated_data["last_known_location"] = None
@@ -123,6 +124,14 @@ class DriverEditSerializer(EditModelSerializer):
         if "last_known_location" in validated_data:
             instance.last_known_location = validated_data["last_known_location"]
             instance.last_known_location_updated_at = DateUtils.now()
+            # Logging the driver's ID and location updates
+            logger.info(
+                f"Driver ID: {instance.user.id} - Updating last_known_location "
+                f"to Lat:{latitude} Long:{longitude} Point: {point}"
+            )
+            logger.info(
+                f"Driver ID: {instance.user.id} - last_known_location_updated_at: {instance.last_known_location_updated_at}"
+            )
             instance.save(update_fields=["last_known_location", "last_known_location_updated_at"])
 
         return instance
