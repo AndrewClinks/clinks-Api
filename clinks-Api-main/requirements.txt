@@ -38,9 +38,9 @@ idna==2.10
 kombu==5.4.2
 newrelic==7.2.4.171
 oauthlib==3.1.1
-Pillow==9.0.0
+Pillow==11.0.0
 prompt-toolkit==3.0.24
-psycopg2==2.9.3
+psycopg2==2.9.10
 py-vapid==1.8.2
 pycountry==20.7.3
 pycparser==2.20
