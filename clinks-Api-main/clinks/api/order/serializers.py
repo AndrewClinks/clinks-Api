@@ -283,7 +283,7 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
         fields = ["status", "delivery_status"]
 
     def validate_status(self, status):
-        return self.validate_enum_field("status", status, [Constants.ORDER_STATUS_LOOKING_FOR_DRIVER, Constants.ORDER_STATUS_REJECTED])
+        return self.validate_enum_field("status", status, [Constants.ORDER_STATUS_LOOKING_FOR_DRIVER, Constants.ORDER_STATUS_REJECTED, Constants.DELIVERY_STATUS_DELIVERED])
 
     def validate_delivery_status(self, delivery_status):
         return self.validate_enum_field("delivery status", delivery_status, [Constants.DELIVERY_STATUS_OUT_FOR_DELIVERY, Constants.DELIVERY_STATUS_RETURNED])
