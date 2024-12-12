@@ -1,6 +1,6 @@
 from celery.schedules import crontab
-from celery.task import periodic_task, Task
-from celery import task
+from celery import Task, shared_task
+from celery import Celery
 from celery.utils.log import get_task_logger
 from celery import shared_task
 from django.db import transaction
@@ -11,7 +11,7 @@ from .utils import Constants, Api
 from .utils import Mail
 
 logger = get_task_logger(__name__)
-
+app = Celery('clinks')
 
 class TransactionAwareTask(Task):
     def delay_on_commit(self, *args, **kwargs):
@@ -131,12 +131,14 @@ def set_delivery_requests_as_missed(order_id):
 
     logger.info(f"Scheduled task: update_delivery_requests_as_missed {order_id}")
 
+# Beat schedule configuration
+app.conf.beat_schedule = {
+    'cancel-driver-not-found-or-expired-orders': {
+        'task': 'cancel_driver_not_found_or_expired_orders',
+        'schedule': crontab(minute='*/5'),  # Runs every 5 minutes
+    },
+}
 
-@periodic_task(
-    run_every=(crontab(minute='*/5')),
-    name="cancel_driver_not_found_or_expired_orders",
-    ignore_result=True
-)
 def cancel_driver_not_found_or_expired_orders():
     from .order.models import Order
     from .delivery_request.models import DeliveryRequest

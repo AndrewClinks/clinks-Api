@@ -30,6 +30,9 @@ SECRET_KEY = os.environ['GENERAL_SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ['GENERAL_DEBUG'] == 'True'
 
+GDAL_LIBRARY_PATH = os.getenv("GDAL_LIBRARY_PATH")
+GEOS_LIBRARY_PATH = os.getenv("GEOS_LIBRARY_PATH")
+
 ALLOWED_HOSTS = [os.environ['GENERAL_HOST_DOMAIN'], '127.0.0.1', 'localhost']
 
 APPEND_SLASH = False
@@ -39,6 +42,7 @@ SECURE_SSL_REDIRECT = not DEBUG
 # Application definition
 
 INSTALLED_APPS = [
+    'django_celery_beat',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'django.contrib.admin',

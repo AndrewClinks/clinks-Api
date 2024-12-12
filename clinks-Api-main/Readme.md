@@ -43,3 +43,23 @@ From then on you can just run
 
 Now install the required packages:
 ```pip install -r requirements.txt```
+
+```bash
+brew install gdal
+brew install geos 
+brew install postgresql postgis
+brew install fontconfig
+```
+
+Create a .env file with all the variables
+```bash
+export $(cat .env | xargs)
+```
+
+Check migrations
+```bash
+python manage.py showmigration
+python manage.py migrate api --fake
+python manage.py makemigrations
+python manage.py migrate 
+```
