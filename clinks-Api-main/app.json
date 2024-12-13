@@ -29,5 +29,10 @@
     {
       "url": "heroku/python"
     }
-  ]
+  ],
+  "env": {
+    "GDAL_VERSION": "3.10.0",
+    "GEOS_VERSION": "3.13.0",
+    "PROJ_VERSION": "9.5.1"
+  }
 }
