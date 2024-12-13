@@ -13,13 +13,16 @@ click==8.1.7
 click-didyoumean==0.3.0
 click-plugins==1.1.1
 click-repl==0.2.0
+cron-descriptor==1.4.5
 cryptography==3.4.7
 cssselect2==0.6.0
 defusedxml==0.7.1
 dj-database-url==0.5.0
 Django==3.2.3
+django-celery-beat==2.7.0
 django-cors-headers==3.11.0
 django-push-notifications==3.0.2
+django-timezone-field==7.0
 djangorestframework==3.12.4
 djangorestframework-simplejwt==4.6.0
 fonttools==4.33.2
@@ -36,9 +39,9 @@ hyper==0.7.0
 hyperframe==3.2.0
 idna==2.10
 kombu==5.4.2
-newrelic==7.2.4.171
+newrelic==10.4.0
 oauthlib==3.1.1
-Pillow==11.0.0
+pillow==11.0.0
 prompt-toolkit==3.0.24
 psycopg2==2.9.10
 py-vapid==1.8.2
@@ -49,6 +52,7 @@ PyJWT==1.7.1
 pyphen==0.12.0
 pypng==0.0.20
 PyQRCode==1.2.1
+python-crontab==3.2.0
 python-dateutil==2.9.0
 python-http-client==3.3.2
 python3-openid==3.2.0
@@ -66,6 +70,7 @@ sqlparse==0.4.1
 starkbank-ecdsa==1.1.1
 stripe==2.57.0
 tinycss2==1.1.1
+tzdata==2024.2
 urllib3==1.26.5
 vine==5.1.0
 wallet-py3k==0.0.4
