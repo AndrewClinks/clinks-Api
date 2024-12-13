@@ -53,6 +53,7 @@ brew install fontconfig
 
 Create a .env file with all the variables
 ```bash
+cd clinks
 export $(cat .env | xargs)
 ```
 
