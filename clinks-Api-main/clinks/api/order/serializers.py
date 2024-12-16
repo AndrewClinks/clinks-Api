@@ -369,7 +369,11 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
 
             if status == Constants.ACCEPTED:
                 order.driver = validated_data.get("driver", None)
-                
+                if order.driver:
+                    # Update the order with the new driver's ID
+                    order.driver_id = order.driver.id
+                    order.save(update_fields=["driver_id"])  # Save only the driver_id field to avoid unnecessary writes
+
                 # Check if there's an existing delivery request for this driver and this order
                 existing_delivery_request = DeliveryRequest.objects.filter(order=order, driver=order.driver).first()
                 
