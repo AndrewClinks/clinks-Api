@@ -25,6 +25,7 @@ import secrets
 
 from ..utils import Availability, List, Distance, DateUtils, Constants, Api
 from ..order.models import Order
+from ..delivery_request.models import DeliveryRequest
 from ..payment.models import Payment
 from ..currency.models import Currency 
 from ..card.models import Card
@@ -331,6 +332,9 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
                 # logger.info(f"Order {self.instance.id} marked as DELIVERY_STATUS_RETURNED")
                 attrs["returned_at"] = now
                 self.instance.payment.returned(self.instance)
+        
+        if status == Constants.ACCEPTED:
+            attrs["driver"] = attrs.get("driver", None)
 
         return attrs
 
@@ -362,6 +366,20 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
             if status == Constants.ORDER_STATUS_REJECTED:
                 #logger.info(f"Updating {order.id} ORDER_STATUS_REJECTED send_notification")
                 send_notification.delay_on_commit("send_order_for_customer", order.id, status)
+
+            if status == Constants.ACCEPTED:
+                order.driver = validated_data.get("driver", None)
+                
+                # Check if there's an existing delivery request for this driver and this order
+                existing_delivery_request = DeliveryRequest.objects.filter(order=order, driver=order.driver).first()
+                
+                if not existing_delivery_request:
+                    # Create a delivery request for this driver and this order
+                    DeliveryRequest.objects.create(order=order, driver=order.driver, status=Constants.DELIVERY_REQUEST_STATUS_ASSIGNED)
+
+                # Set all other delivery requests for this order to "missed"
+                DeliveryRequest.objects.filter(order=order).exclude(driver=order.driver).update(status=Constants.DELIVERY_REQUEST_STATUS_MISSED)
+
 
             if delivery_status is Constants.DELIVERY_STATUS_OUT_FOR_DELIVERY:
                 #logger.info(f"Updating {order.id} DELIVERY_STATUS_OUT_FOR_DELIVERY delay_on_commit")
