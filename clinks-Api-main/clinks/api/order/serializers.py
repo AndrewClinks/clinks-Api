@@ -333,7 +333,7 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
                 attrs["returned_at"] = now
                 self.instance.payment.returned(self.instance)
         
-        if status == Constants.ACCEPTED:
+        if status == Constants.ACCEPTED and self.context['request'].user.role != Constants.USER_ROLE_ADMIN:
             attrs["driver"] = attrs.get("driver", None)
 
         return attrs
@@ -367,7 +367,7 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
                 #logger.info(f"Updating {order.id} ORDER_STATUS_REJECTED send_notification")
                 send_notification.delay_on_commit("send_order_for_customer", order.id, status)
 
-            if status == Constants.ACCEPTED:
+            if status == Constants.ACCEPTED and self.context['request'].user.role != Constants.USER_ROLE_ADMIN:
                 order.driver = validated_data.get("driver", None)
                 if order.driver:
                     # Update the order with the new driver's ID
