@@ -5,8 +5,8 @@ from .models import DeliveryRequest
 from .serializers import *
 
 from ..utils.Permissions import (
-    IsDriverPermission
-
+    IsDriverPermission,
+    IsAdminPermission
 )
 
 from django.db.models import Q
@@ -44,7 +44,7 @@ class List(SmartPaginationAPIView):
 
 
 class Detail(SmartDetailAPIView):
-    permission_classes = [IsDriverPermission]
+    permission_classes = [IsDriverPermission, IsAdminPermission]
 
     model = DeliveryRequest
     edit_serializer = DeliveryRequestEditSerializer
