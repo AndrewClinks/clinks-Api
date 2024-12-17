@@ -1,24 +1,25 @@
-from celery.schedules import crontab
 from celery import Task, shared_task
-from celery import Celery
 from celery.utils.log import get_task_logger
 from celery import shared_task
 from django.db import transaction
-
+from clinks.celery import app
 from .utils import Constants, Api
-
-
 from .utils import Mail
 
 logger = get_task_logger(__name__)
-app = Celery('clinks')
-
 class TransactionAwareTask(Task):
     def delay_on_commit(self, *args, **kwargs):
-        return transaction.on_commit(
-            lambda: self.delay(*args, **kwargs)
-        )
-
+        """
+        Ensures the task is delayed only after the transaction is committed.
+        If not already inside a transaction, wraps it in transaction.atomic().
+        """
+        if not transaction.get_connection().in_atomic_block:
+            # Forcefully wrap in a transaction.atomic block if not already in one
+            with transaction.atomic():
+                return transaction.on_commit(lambda: self.delay(*args, **kwargs))
+        else:
+            # Use existing atomic transaction
+            return transaction.on_commit(lambda: self.delay(*args, **kwargs))
 
 @shared_task(
     name="send_mail",
@@ -131,14 +132,8 @@ def set_delivery_requests_as_missed(order_id):
 
     logger.info(f"Scheduled task: update_delivery_requests_as_missed {order_id}")
 
-# Beat schedule configuration
-app.conf.beat_schedule = {
-    'cancel-driver-not-found-or-expired-orders': {
-        'task': 'cancel_driver_not_found_or_expired_orders',
-        'schedule': crontab(minute='*/5'),  # Runs every 5 minutes
-    },
-}
-
+# See celery.py for the schedule
+@shared_task(name="cancel_driver_not_found_or_expired_orders", ignore_result=True)
 def cancel_driver_not_found_or_expired_orders():
     from .order.models import Order
     from .delivery_request.models import DeliveryRequest
@@ -176,7 +171,7 @@ def cancel_driver_not_found_or_expired_orders():
         AllTimeStat.update(Constants.ALL_TIME_STAT_NO_DRIVER_FOUND_ORDER_COUNT, count_of_orders)
 
     # NOW CHECK FOR EXPIRED ORDERS
-    expired_orders = Order.objects.filter(status=Constants.ORDER_STATUS_PENDING, created_at__lte=threshold)
+    expired_orders = Order.objects.filter(status=Constants.ORDER_STATUS_PENDING, created_at__lte=threshold).select_related('payment')
 
     for order in expired_orders:
         try:
@@ -196,24 +191,17 @@ def cancel_driver_not_found_or_expired_orders():
 
     # AND FINALLY set all pending delivery requests to missed for pending requests older than 30 minutes
     driver_missed_delivery_requests = DeliveryRequest.objects.filter(status=Constants.DELIVERY_REQUEST_STATUS_PENDING, created_at__lte=threshold)
-    for delivery_request in driver_missed_delivery_requests:
-        delivery_request.status = Constants.DELIVERY_REQUEST_STATUS_MISSED
-        delivery_request.save()
+    driver_missed_delivery_requests.update(status=Constants.DELIVERY_REQUEST_STATUS_MISSED)
 
-@shared_task(
-    name="send_notification",
-    ignore_result=True,
-    base=TransactionAwareTask
-)
-def send_notification(notification_function_to_be_triggered, *args):
-    from .utils import Notification
-
-    #logger.info(f"Start > send_notification with function: {notification_function_to_be_triggered}")
-
-    getattr(Notification, notification_function_to_be_triggered)(*args)
-
-    logger.info(f"Completed Queued Task: send_notification: {notification_function_to_be_triggered}")
-
+@shared_task(bind=True, name="send_notification", max_retries=3)
+def send_notification(self, notification_function_to_be_triggered, *args):
+    try:
+        from .utils import Notification
+        getattr(Notification, notification_function_to_be_triggered)(*args)
+        logger.info(f"Completed Task: send_notification {notification_function_to_be_triggered}")
+    except Exception as exc:
+        logger.error(f"Failed to send notification: {exc}")
+        raise self.retry(exc=exc, countdown=5)
 
 @shared_task(
     name="generate_receipt_for_order",
