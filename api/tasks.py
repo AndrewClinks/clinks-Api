@@ -2,7 +2,6 @@ from celery import Task, shared_task
 from celery.utils.log import get_task_logger
 from celery import shared_task
 from django.db import transaction
-from clinks.celery import app
 from .utils import Constants, Api
 from .utils import Mail
 
