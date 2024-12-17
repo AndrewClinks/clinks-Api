@@ -1,4 +1,4 @@
-release: cd clinks && python manage.py migrate
-web: newrelic-admin run-program gunicorn --chdir clinks clinks.wsgi --log-file -
-worker: cd clinks && celery -A clinks worker --loglevel=info --concurrency=2
-scheduler: cd clinks && celery -A clinks beat --loglevel=info
+release: python manage.py migrate
+web: newrelic-admin run-program gunicorn clinks.wsgi --log-file -
+worker: celery -A clinks worker --loglevel=info --concurrency=2
+scheduler: celery -A clinks beat --loglevel=info

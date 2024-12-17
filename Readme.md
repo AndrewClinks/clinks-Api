@@ -33,7 +33,9 @@ pyenv install 3.10.16
 pyenv global 3.10.15
 brew install pyenv-virtualenv
 pyenv virtualenv 3.10.16 myenv
+pyenv virtualenvs
 pyenv activate myenv
+pyenv uninstall <virtualenv_name>
 # Set the local python version to the virtualenv
 pyenv local myenv 
 ```
@@ -42,7 +44,10 @@ From then on you can just run
 ```pyenv activate```
 
 Now install the required packages:
-```pip install -r requirements.txt```
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
 
 ```bash
 brew install gdal
@@ -53,7 +58,6 @@ brew install fontconfig
 
 Create a .env file with all the variables
 ```bash
-cd clinks
 export $(cat .env | xargs)
 ```
 
