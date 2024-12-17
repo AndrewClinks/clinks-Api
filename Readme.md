@@ -29,10 +29,10 @@ fi
 ```
 
 ```bash
-pyenv install 3.10.2
-pyenv global 3.10.2
+pyenv install 3.10.16
+pyenv global 3.10.15
 brew install pyenv-virtualenv
-pyenv virtualenv 3.10.2 myenv
+pyenv virtualenv 3.10.16 myenv
 pyenv activate myenv
 # Set the local python version to the virtualenv
 pyenv local myenv 
