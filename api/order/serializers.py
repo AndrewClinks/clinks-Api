@@ -1,4 +1,4 @@
-from ..utils.Serializers import serializers, ValidateModelSerializer, CreateModelSerializer, EditModelSerializer, ListModelSerializer
+from ..utils.Serializers import serializers, CreateModelSerializer, EditModelSerializer, ListModelSerializer
 
 from ..address.models import Address
 from ..address.serializers import AddressDetailSerializer
@@ -10,8 +10,6 @@ from ..venue.models import Venue
 from ..setting.models import Setting
 from ..delivery_distance.models import DeliveryDistance
 from django.contrib.gis.geos import Point
-
-from django.db.models import F
 
 from ..identification.serializers import IdentificationCreateSerializer
 
@@ -30,6 +28,7 @@ from ..payment.models import Payment
 from ..currency.models import Currency 
 from ..card.models import Card
 from ..card.serializers import CardDetailSerializer
+from ..driver.models import Driver
 
 import logging
 logger = logging.getLogger('clinks-api-live')
@@ -281,8 +280,13 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
     # Parent first calls validate and then update in quick succession
     class Meta:
         model = Order
-        fields = ["status", "delivery_status"]
+        fields = ["status", "delivery_status", "driver"]
 
+    def validate_driver(self, driver):
+        if not Driver.objects.filter(pk=driver.id).exists():
+            self.raise_validation_error("driver", "Invalid driver ID")
+        return driver
+    
     def validate_status(self, status):
         return self.validate_enum_field("status", status, [Constants.ORDER_STATUS_LOOKING_FOR_DRIVER, Constants.ORDER_STATUS_REJECTED, Constants.ORDER_STATUS_ACCEPTED])
 
@@ -295,9 +299,13 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
         
         status = attrs.get("status", None)
         delivery_status = attrs.get("delivery_status", None)
+        driver = attrs.get("driver", None)
 
         if status and delivery_status:
             self.raise_validation_error("Order", "You cannot edit status and delivery status at the same time")
+
+        if status == Constants.ORDER_STATUS_ACCEPTED and not driver:
+            self.raise_validation_error("Driver", "Driver must be specified when accepting an order")
 
         if status is not None and self.instance.status != Constants.ORDER_STATUS_PENDING:
             self.raise_validation_error("Order", "You can only change status of pending orders")
@@ -326,15 +334,15 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
             self.instance.payment.refund()
 
         if delivery_status == Constants.DELIVERY_STATUS_OUT_FOR_DELIVERY:
-                # logger.info(f"Order {self.instance.id} marked as DELIVERY_STATUS_OUT_FOR_DELIVERY")
-                attrs["collected_at"] = now
+            # logger.info(f"Order {self.instance.id} marked as DELIVERY_STATUS_OUT_FOR_DELIVERY")
+            attrs["collected_at"] = now
         elif delivery_status == Constants.DELIVERY_STATUS_RETURNED:
-                # logger.info(f"Order {self.instance.id} marked as DELIVERY_STATUS_RETURNED")
-                attrs["returned_at"] = now
-                self.instance.payment.returned(self.instance)
+            # logger.info(f"Order {self.instance.id} marked as DELIVERY_STATUS_RETURNED")
+            attrs["returned_at"] = now
+            self.instance.payment.returned(self.instance)
         
-        if status == Constants.ACCEPTED and self.context['request'].user.role != Constants.USER_ROLE_ADMIN:
-            attrs["driver"] = attrs.get("driver", None)
+        if status == Constants.ORDER_STATUS_ACCEPTED and self.context['request'].user.role != Constants.USER_ROLE_ADMIN:
+            self.raise_validation_error("Order", "You must be admin to change an order to accepted directly.")
 
         return attrs
 
@@ -345,6 +353,7 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
         # If not in the request then set to None but doesnt change db value.
         status = validated_data.get("status", None)
         delivery_status = validated_data.get("delivery_status", None)
+        driver = validated_data.get("driver", None)
 
         try:
             # Updates either status or delivery_status can't be both at the same time
@@ -367,22 +376,32 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
                 #logger.info(f"Updating {order.id} ORDER_STATUS_REJECTED send_notification")
                 send_notification.delay_on_commit("send_order_for_customer", order.id, status)
 
-            if status == Constants.ACCEPTED and self.context['request'].user.role != Constants.USER_ROLE_ADMIN:
-                order.driver = validated_data.get("driver", None)
-                if order.driver:
+            # This allows manual setting of the order to a specific driver
+            if status == Constants.ORDER_STATUS_ACCEPTED and self.context['request'].user.role == Constants.USER_ROLE_ADMIN:
+                if driver:
                     # Update the order with the new driver's ID
-                    order.driver_id = order.driver.id
-                    order.save(update_fields=["driver_id"])  # Save only the driver_id field to avoid unnecessary writes
+                    order.driver_id = driver.id
+                    order.accepted_at = DateUtils.now()
+                    order.status = Constants.ORDER_STATUS_ACCEPTED
+                    order.save(update_fields=["driver_id"]) 
 
-                # Check if there's an existing delivery request for this driver and this order
-                existing_delivery_request = DeliveryRequest.objects.filter(order=order, driver=order.driver).first()
-                
-                if not existing_delivery_request:
-                    # Create a delivery request for this driver and this order
-                    DeliveryRequest.objects.create(order=order, driver=order.driver, status=Constants.DELIVERY_REQUEST_STATUS_ASSIGNED)
+                    # Check if there's an existing delivery request for this driver and this order
+                    delivery_request = DeliveryRequest.objects.filter(order=order, driver=order.driver).first()
+                    
+                    if delivery_request:
+                        # Update the status of the existing delivery request
+                        delivery_request.status = Constants.DELIVERY_REQUEST_STATUS_ACCEPTED
+                        delivery_request.save()
+                    else:
+                        # Create a new delivery request for this driver and this order
+                        delivery_request = DeliveryRequest.objects.create(order=order, driver=order.driver, status=Constants.DELIVERY_REQUEST_STATUS_ACCEPTED)
 
-                # Set all other delivery requests for this order to "missed"
-                DeliveryRequest.objects.filter(order=order).exclude(driver=order.driver).update(status=Constants.DELIVERY_REQUEST_STATUS_MISSED)
+                    # Set all other delivery requests for this order to "missed"
+                    DeliveryRequest.objects.filter(order=order).exclude(driver=order.driver).update(status=Constants.DELIVERY_REQUEST_STATUS_MISSED)
+
+                    # Update the driver with the order
+                    order.driver.current_delivery_request = delivery_request
+                    order.driver.save()
 
 
             if delivery_status is Constants.DELIVERY_STATUS_OUT_FOR_DELIVERY:
@@ -391,7 +410,6 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
 
             if delivery_status == Constants.DELIVERY_STATUS_RETURNED:
                 #logger.info(f"Updating {order.id} DELIVERY_STATUS_RETURNED delay_on_commit driver.current_delivery_request = None")
-                driver = order.driver
                 driver.current_delivery_request = None
                 driver.save()
 
