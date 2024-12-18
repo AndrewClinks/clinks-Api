@@ -163,12 +163,12 @@ class SmartDetailAPIView(SmartAPIView):
         if not self.get_edit_serializer(request, instance):
             return self.get_missing_serializer_response(request, "PATCH")
 
-        edit_serializer_class = self.get_edit_serializer(request, instance)
-
-        data = request.data
-        data = self.override_patch_data(request, data)
-
-        edit_serializer = edit_serializer_class(data=data, partial=self.partial, instance=instance)
+        # edit_serializer_class = self.get_edit_serializer(request, instance)
+        #data = request.data
+        #data = self.override_patch_data(request, data)
+        # edit_serializer = edit_serializer_class(data=data, partial=self.partial, instance=instance)
+        edit_serializer = self.get_edit_serializer(request, instance)
+        
         edit_serializer.is_valid(raise_exception=True)
         instance = edit_serializer.update(instance, edit_serializer.validated_data)
         detail_serializer_class = self.get_detail_serializer(request, instance)

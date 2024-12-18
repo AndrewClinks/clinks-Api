@@ -81,6 +81,10 @@ class Detail(SmartDetailAPIView):
         return queryset
 
     def get_edit_serializer(self, request, instance):
-        if self.is_company_member_request():
-            return CompanyMemberEditSerializer
-        return CompanyMemberAdminEditSerializer
+        serializer_class = CompanyMemberEditSerializer if self.is_company_member_request() else CompanyMemberAdminEditSerializer
+        return serializer_class(
+            instance=instance,
+            data=request.data,
+            partial=getattr(self, 'partial', True),  # Default to `partial=True` if not explicitly set
+            context={'request': request}
+        )

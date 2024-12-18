@@ -128,8 +128,18 @@ class Detail(SmartDetailAPIView):
     # This is the serializer for Patch requests
     def get_edit_serializer(self, request, instance):
         if self.is_driver_request():
-            return OrderDriverEditSerializer
-        return OrderCompanyMemberEditSerializer
+            return OrderDriverEditSerializer(
+                instance=instance,
+                data=request.data,
+                context={'request': request},
+                partial=self.partial
+            )
+        return OrderCompanyMemberEditSerializer(
+            instance=instance,
+            data=request.data,
+            context={'request': request},
+            partial=self.partial
+        )
 
     def get_detail_serializer(self, request, instance):
         if self.is_customer_request():

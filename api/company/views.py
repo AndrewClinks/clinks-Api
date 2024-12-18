@@ -62,9 +62,13 @@ class Detail(SmartDetailAPIView):
         return Company.objects.filter(id=id)
 
     def get_edit_serializer(self, request, instance):
-        if self.is_company_member_request():
-            return CompanyEditSerializer
-        return CompanyAdminEditSerializer
+        serializer_class = CompanyEditSerializer if self.is_company_member_request() else CompanyAdminEditSerializer
+        return serializer_class(
+            instance=instance,
+            data=request.data,
+            partial=getattr(self, 'partial', True),  # Use `partial=True` by default if not set
+            context={'request': request}
+        )
 
     def get_detail_serializer(self, request, instance):
         if self.is_company_member_request():

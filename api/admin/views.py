@@ -62,10 +62,13 @@ class Detail(SmartDetailAPIView):
         return True
 
     def get_edit_serializer(self, request, instance):
-        if self.is_super_admin_request() and instance.user.id != self.request.user.id:
-            return AdminSuperEditSerializer
-
-        return AdminEditSerializer
+        serializer_class = AdminSuperEditSerializer if self.is_super_admin_request() and instance.user.id != self.request.user.id else AdminEditSerializer
+        return serializer_class(
+            instance=instance,
+            data=request.data,
+            partial=getattr(self, 'partial', True),  # Default to `partial=True`
+            context={'request': request}
+        )
 
     def handle_delete(self, instance):
         if instance.user.id == self.request.user.id or instance.role == Constants.ADMIN_ROLE_ADMIN:

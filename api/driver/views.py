@@ -74,6 +74,10 @@ class Detail(SmartDetailAPIView):
         return DriverAdminDetailSerializer
 
     def get_edit_serializer(self, request, instance):
-        if self.is_driver_request():
-            return DriverEditSerializer
-        return DriverAdminEditSerializer
+        serializer_class = DriverEditSerializer if self.is_driver_request() else DriverAdminEditSerializer
+        return serializer_class(
+            instance=instance,
+            data=request.data,
+            partial=getattr(self, 'partial', True),  # Default to `partial=True` if not explicitly set
+            context={'request': request}
+        )
