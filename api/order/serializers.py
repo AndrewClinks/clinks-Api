@@ -315,9 +315,6 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
         if status == Constants.ORDER_STATUS_ACCEPTED and not driver:
             self.raise_validation_error("Driver", "Driver must be specified when accepting an order")
 
-        if status is not None and self.instance.status != Constants.ORDER_STATUS_PENDING:
-            self.raise_validation_error("Order", "You can only change status of pending orders")
-
         if status == Constants.ORDER_STATUS_REJECTED and (self.instance.delivery_status != Constants.DELIVERY_STATUS_PENDING or self.instance.driver != None):
             self.raise_validation_error("Order", "You cannot reject this order because the driver is trying to deliver it")
 
