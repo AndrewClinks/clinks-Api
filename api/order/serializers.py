@@ -285,8 +285,14 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
     def validate_driver(self, driver):
         if driver is None:
             return None
-        if not Driver.objects.filter(pk=driver.id).exists():
-            self.raise_validation_error("driver", "Invalid driver ID")
+        if isinstance(driver, int):
+            # Fetch the Driver instance from the database
+            try:
+                driver = Driver.objects.get(pk=driver)
+            except Driver.DoesNotExist:
+                self.raise_validation_error("driver", "Invalid driver ID")
+        elif not isinstance(driver, Driver):
+            self.raise_validation_error("driver", "Invalid driver input")
         return driver
     
     def validate_status(self, status):
