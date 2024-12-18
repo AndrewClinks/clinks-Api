@@ -346,7 +346,7 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
             attrs["returned_at"] = now
             self.instance.payment.returned(self.instance)
         
-        if status == Constants.ORDER_STATUS_ACCEPTED and self.context['request'].user.is_superuser == False:
+        if status == Constants.ORDER_STATUS_ACCEPTED and self.context['request'].user.role != Constants.USER_ROLE_ADMIN:
             self.raise_validation_error("Order", "You must be admin to change an order to accepted directly.")
 
         return attrs
