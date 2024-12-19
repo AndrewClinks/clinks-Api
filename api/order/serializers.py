@@ -385,10 +385,10 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
             if status == Constants.ORDER_STATUS_ACCEPTED and self.context['request'].user.role == Constants.USER_ROLE_ADMIN:
                 if driver:
                     # Update the order with the new driver's ID
-                    order.driver_id = driver.id
+                    order.driver = driver
                     order.accepted_at = DateUtils.now()
                     order.status = Constants.ORDER_STATUS_ACCEPTED
-                    order.save(update_fields=["driver_id"]) 
+                    order.save(update_fields=["driver", "accepted_at", "status"]) 
 
                     # Check if there's an existing delivery request for this driver and this order
                     delivery_request = DeliveryRequest.objects.filter(order=order, driver=order.driver).first()
