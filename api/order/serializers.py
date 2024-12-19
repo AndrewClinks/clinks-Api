@@ -358,7 +358,7 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
         # If not in the request then set to None but doesnt change db value.
         status = validated_data.get("status", None)
         delivery_status = validated_data.get("delivery_status", None)
-        driver = serializers.PrimaryKeyRelatedField(queryset=Driver.objects.all(), required=False, allow_null=True)
+        driver = validated_data.get("driver", None)
 
         try:
             # Updates either status or delivery_status can't be both at the same time
