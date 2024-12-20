@@ -141,7 +141,8 @@ def cancel_driver_not_found_or_expired_orders():
 
     logger.info(f"Periodic_task: cancel_driver_not_found_or_expired_orders")
 
-    threshold = DateUtils.minutes_before(30)
+    # Setting this to 24 hrs to avoid vendors getting charged if no drivers around.
+    threshold = DateUtils.minutes_before(1440)
 
     # FIRST CHECK FOR NO DRIVER FOUND ORDERS
     no_driver_found_orders = Order.objects.filter(status=Constants.ORDER_STATUS_LOOKING_FOR_DRIVER, started_looking_for_drivers_at__lte=threshold)
@@ -170,6 +171,7 @@ def cancel_driver_not_found_or_expired_orders():
         AllTimeStat.update(Constants.ALL_TIME_STAT_NO_DRIVER_FOUND_ORDER_COUNT, count_of_orders)
 
     # NOW CHECK FOR EXPIRED ORDERS
+    threshold = DateUtils.minutes_before(30)
     expired_orders = Order.objects.filter(status=Constants.ORDER_STATUS_PENDING, created_at__lte=threshold).select_related('payment')
 
     for order in expired_orders:
