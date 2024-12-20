@@ -398,11 +398,19 @@ class OrderCompanyMemberEditSerializer(EditModelSerializer):
                         delivery_request.status = Constants.DELIVERY_REQUEST_STATUS_ACCEPTED
                         delivery_request.save()
                     else:
+                        venue_point = Point(order.data["venue_address"]["longitude"], order.data["venue_address"]["latitude"])
                         # Create a new delivery request for this driver and this order
-                        delivery_request = DeliveryRequest.objects.create(order=order, driver=order.driver, status=Constants.DELIVERY_REQUEST_STATUS_ACCEPTED)
+                        delivery_request = DeliveryRequest.objects.create(
+                            order=order, 
+                            driver=order.driver, 
+                            status=Constants.DELIVERY_REQUEST_STATUS_ACCEPTED,
+                            driver_location=venue_point
+                        )
 
                     # Set all other delivery requests for this order to "missed"
-                    DeliveryRequest.objects.filter(order=order).exclude(driver=order.driver).update(status=Constants.DELIVERY_REQUEST_STATUS_MISSED)
+                    DeliveryRequest.objects.filter(order=order).exclude(
+                        driver=order.driver
+                    ).update(status=Constants.DELIVERY_REQUEST_STATUS_MISSED)
 
                     # Update the driver with the order
                     order.driver.current_delivery_request = delivery_request
@@ -543,7 +551,6 @@ class OrderDriverEditSerializer(EditModelSerializer):
         from ..driver_payment.models import DriverPayment
 
         delivery_status = validated_data["delivery_status"]
-        status = validated_data.get("status", None)
         identification_data = validated_data.pop("identification", None)
 
         if identification_data:
