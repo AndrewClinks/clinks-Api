@@ -11,6 +11,7 @@ from ..utils import Message, QueryParams, Constants, Export, Exception as Custom
 import logging
 logger = logging.getLogger('clinks-api-live')
 
+# TODO: refactor this to inherit from GenericAPIView
 class SmartAPIView(APIView):
 
     query_params = QueryParams

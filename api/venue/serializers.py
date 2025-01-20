@@ -43,7 +43,7 @@ class VenueCreateSerializer(CreateModelSerializer):
 
 
 class VenueEditSerializer(EditModelSerializer):
-    address = AddressEditSerializer(required=False, partial=False)
+    address = AddressEditSerializer(required=False, partial=True)
     opening_hours = OpeningHourValidateSerializer(many=True, required=False, partial=False)
 
     class Meta:
