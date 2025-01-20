@@ -103,7 +103,7 @@ class Detail(SmartDetailAPIView):
     
     def patch(self, request, id):
         # Fetch the instance
-        instance = self.get_object()
+        instance = self.get_object(request, id)
 
         # Instantiate the serializer with instance and request data
         serializer = self.edit_serializer(instance, data=request.data, partial=True)
