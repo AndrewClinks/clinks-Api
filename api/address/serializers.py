@@ -24,20 +24,20 @@ class AddressCreateSerializer(CreateModelSerializer):
 
 
 class AddressEditSerializer(EditModelSerializer):
-    latitude = serializers.FloatField()
-    longitude = serializers.FloatField()
+    latitude = serializers.FloatField(required=False)
+    longitude = serializers.FloatField(required=False)
 
     class Meta:
         model = Address
         exclude = ["point"]
 
     def update(self, instance, validated_data):
-        longitude = validated_data.pop('longitude')
-        latitude = validated_data.pop('latitude')
+        longitude = validated_data.pop('longitude', None)
+        latitude = validated_data.pop('latitude', None)
 
-        point = Point(longitude, latitude)
-
-        instance.point = point
+        if longitude is not None and latitude is not None:
+            point = Point(longitude, latitude)
+            instance.point = point
 
         address = super(AddressEditSerializer, self).update(instance, validated_data)
 
