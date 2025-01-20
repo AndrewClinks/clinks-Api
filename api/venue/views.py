@@ -16,6 +16,7 @@ from ..utils.Permissions import (
 from ..utils.Views import SmartPaginationAPIView, SmartDetailAPIView
 
 from ..utils import QueryParams, Point, Nearby, DateUtils
+from rest_framework.response import Response
 
 
 class ListCreate(SmartPaginationAPIView):
@@ -123,3 +124,19 @@ class Detail(SmartDetailAPIView):
         elif method == "PATCH" and not (self.is_admin_request() or self.is_company_member_request()):
             return False
         return True
+    
+    def patch(self, request, *args, **kwargs):
+        # Get the instance
+        instance = self.get_object()
+
+        # Instantiate the serializer with the instance and request data
+        serializer = self.edit_serializer(instance, data=request.data, partial=True)
+
+        # Validate the serializer
+        serializer.is_valid(raise_exception=True)
+
+        # Save the validated data
+        serializer.save()
+
+        # Return the updated object as a response
+        return Response(serializer.data, status=200)
