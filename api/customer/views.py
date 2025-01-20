@@ -25,6 +25,8 @@ import uuid
 
 from ..utils import Constants, Token, QueryParams
 
+from django.http import Http404
+
 
 class ListCreate(SmartPaginationAPIView):
 
@@ -71,6 +73,12 @@ class Detail(SmartDetailAPIView):
 
     deletable = True
 
+    def get_object(self, request, id):
+        instance = self.queryset(request, id).first()
+        if not instance:
+            raise Http404("Object not found")
+        return instance
+
     def queryset(self, request, id):
         if self.is_customer_request():
             return Customer.objects.filter(user_id=request.user.id)
@@ -92,6 +100,22 @@ class Detail(SmartDetailAPIView):
         instance.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    def patch(self, request, id):
+        # Fetch the instance
+        instance = self.get_object()
+
+        # Instantiate the serializer with instance and request data
+        serializer = self.edit_serializer(instance, data=request.data, partial=True)
+
+        # Validate the serializer
+        serializer.is_valid(raise_exception=True)
+
+        # Save the changes
+        serializer.save()
+
+        # Return the updated object
+        return Response(serializer.data, status=200)
 
 
 
