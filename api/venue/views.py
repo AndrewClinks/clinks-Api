@@ -17,6 +17,7 @@ from ..utils.Views import SmartPaginationAPIView, SmartDetailAPIView
 
 from ..utils import QueryParams, Point, Nearby, DateUtils
 from rest_framework.response import Response
+from django.http import Http404
 
 
 class ListCreate(SmartPaginationAPIView):
@@ -103,6 +104,12 @@ class Detail(SmartDetailAPIView):
     model = Venue
     edit_serializer = VenueEditSerializer
 
+    def get_object(self, request, id):
+        instance = self.queryset(request, id).first()
+        if not instance:
+            raise Http404("Object not found")
+        return instance
+
     def queryset(self, request, id):
         queryset = Venue.objects.filter(id=id)
 
@@ -125,9 +132,9 @@ class Detail(SmartDetailAPIView):
             return False
         return True
     
-    def patch(self, request, *args, **kwargs):
+    def patch(self, request, id, *args, **kwargs):
         # Get the instance
-        instance = self.get_object()
+        instance = self.get_object(request, id)
 
         # Instantiate the serializer with the instance and request data
         serializer = self.edit_serializer(instance, data=request.data, partial=True)
